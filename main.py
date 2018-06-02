@@ -212,8 +212,6 @@ if __name__ == '__main__':
                 except Exception as e:
                     print("Failed to load cog '{}', Reason: {}".format(cog_name, type(e).__name__))
 
-    # print(data)
-
     if first_time is True:
         with open(filepath, "w") as f:
             print("dumping data")

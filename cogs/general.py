@@ -272,6 +272,11 @@ class General:
         except Exception as e:
             await self.bot.say("uh it errored or something")
 
+    @commands.command()
+    async def github(self):
+        """Provide link to the bot's source code"""
+        await self.bot.say("https://github.com/ExtraRandom/StellarBot")
+
     async def process_user(self, user):
         s = self.bot.get_server("442608736864043008")
         if user.startswith("<@!"):

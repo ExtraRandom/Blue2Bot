@@ -32,7 +32,7 @@ class General:
     async def react(self, ctx):
         """Use =help react to see subcommands"""
         if ctx.invoked_subcommand is None:
-            await self.bot.say("Use =help react to see subcommands")
+            await self.bot.say("Use '=help react' to see subcommands")
 
     @react.command(pass_context=True, aliases=["rs"])
     @perms.is_server_owner_or_dev()

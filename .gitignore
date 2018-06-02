@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 *.xml
 .idea/*
+configs/settings.json

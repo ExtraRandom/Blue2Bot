@@ -7,14 +7,15 @@ import asyncio
 import random
 import custom_processing
 import os
+import perms
 
 bot = commands.Bot(command_prefix='=', description="Stellar Bot", pm_help=False)
 
 
 @bot.event
 async def on_ready():
-    login_time = datetime.utcnow()
-    print("Bot Logged In at {} UTC".format(login_time))
+    login_time = datetime.now()
+    print("Bot Logged In at {}".format(login_time))
 
 
 @bot.event
@@ -58,14 +59,21 @@ async def on_member_join(member):
     skiz = get_member_from_id("438678163229507584")
     extr = get_member_from_id("92562410493202432")
 
-    # print(skiz, extr)
+    with open(filepath, "r") as f:
+        r_data = f.read()
+        data = json.loads(r_data)
 
-    if skiz.status == discord.Status.offline and extr.status == discord.Status.offline:
-        # await bot.send_message(c, "No mod's are online.")
-        pass
+    if data['handle-newcomers'] is False:
+        # If False then bot will only handle newcomers when Mod's are offline
+        if skiz.status == discord.Status.offline and extr.status == discord.Status.offline:
+            # await bot.send_message(c, "No mod's are online.")
+            pass
+        else:
+            # print("Mod's online")
+            return
     else:
-        # print("Mod's online")
-        return
+        # If true then bot will handle newcomers no matter what
+        pass
 
     await bot.send_message(c, "Hello there {}. Please take a moment to read the rules!".format(member.mention))
 
@@ -128,6 +136,32 @@ async def on_command_error(error, ctx):
                                         "{}".format(error))
 
 
+@bot.command()
+@perms.is_server_owner_or_dev()
+async def bot_welcome():
+    """Toggle whether bot handles newcomers when mods are online or not (MODS ONLY)"""
+    # cd = os.path.dirname(os.path.realpath(__file__))
+    # filepath = os.path.join(cd, "configs", "settings.json")
+
+    with open(filepath, "r") as f:
+        r_data = f.read()
+
+    data = json.loads(r_data)
+    current = bool(data['handle-newcomers'])
+
+    new = not current
+
+    data['handle-newcomers'] = new
+
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=4)
+
+    if current is True:
+        await bot.say("Turning off bot welcome handling, will still handle newcomers if no mods are online")
+    else:
+        await bot.say("Turning on bot welcome handling")
+
+
 async def custom_reaction(message):
     msg = str(message.content).lower()
 
@@ -164,35 +198,36 @@ async def custom_reaction(message):
                         return
                     await react(message, emoji)
 
-        except Exception as e:
+        except Exception:
             pass
 
 
 async def react(msg, emoji):
     try:
         await bot.add_reaction(msg, emoji)
-    except Exception as e:
-        print(e)
+    except Exception as ex:
+        print(ex)
         return
 
 
 if __name__ == '__main__':
     first_time = False
-    data = {}
+    s_data = {}
     cd = os.path.dirname(os.path.realpath(__file__))
     filepath = os.path.join(cd, "configs", "settings.json")  # "/configs/settings.json"
     # print(file)
 
     if os.path.isfile(filepath) is False:
-        print("First Time running")
+        print("First Time Run - Creating Settings JSON")
         # file doesn't exist
         first_time = True
-        data['token'] = None
-        data['cogs'] = {}
+        s_data['token'] = None
+        s_data['handle-newcomers'] = False
+        s_data['cogs'] = {}
     else:
-        with open(filepath, "r") as f:
-            f_data = f.read()
-            data = json.loads(f_data)
+        with open(filepath, "r") as f_read:
+            f_data = f_read.read()
+            s_data = json.loads(f_data)
 
     for file in os.listdir("cogs"):
         if file.endswith(".py"):
@@ -201,24 +236,23 @@ if __name__ == '__main__':
             # print(cog_name, cog_path)
 
             if first_time is True:
-                data['cogs'][cog_name] = True
+                s_data['cogs'][cog_name] = True
                 should_load = True
             else:
-                should_load = data['cogs'][cog_name]
+                should_load = s_data['cogs'][cog_name]
             if should_load is True:
                 try:
                     bot.load_extension(cog_path)
                     print("Sucessfully loaded cog '{}'".format(cog_name))
-                except Exception as e:
-                    print("Failed to load cog '{}', Reason: {}".format(cog_name, type(e).__name__))
+                except Exception as exc:
+                    print("Failed to load cog '{}', Reason: {}".format(cog_name, type(exc).__name__))
 
     if first_time is True:
-        with open(filepath, "w") as f:
-            print("dumping data")
-            json.dump(data, f, indent=4)
+        with open(filepath, "w") as f_write:
+            json.dump(s_data, f_write, indent=4)
         token = None
     else:
-        token = data['token']
+        token = s_data['token']
 
     if token:
         bot.run(token)

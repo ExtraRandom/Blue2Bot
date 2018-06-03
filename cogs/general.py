@@ -2,7 +2,7 @@ from discord.ext import commands
 import json
 import discord
 from discord.utils import get
-import perms
+from utils import perms
 
 
 class General:
@@ -259,18 +259,6 @@ class General:
                                  value="{}".format(emoji))  # .format(data[user][i]['emoji']))
 
         await self.bot.say(embed=result)
-
-    @commands.command()
-    @perms.is_dev()
-    async def avatar(self, image: str):
-        """Change the bot's avatar (DEV ONLY)"""
-        try:
-            with open(image, "rb") as avatar:
-                f = avatar.read()
-                image_bytes = bytearray(f)
-                await self.bot.edit_profile(avatar=image_bytes)
-        except Exception as e:
-            await self.bot.say("uh it errored or something")
 
     @commands.command()
     async def github(self):

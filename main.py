@@ -4,10 +4,8 @@ from discord.utils import get
 import json
 from datetime import datetime
 import asyncio
-import random
-import custom_processing
 import os
-import perms
+from utils import perms
 
 bot = commands.Bot(command_prefix='=', description="Stellar Bot", pm_help=False)
 
@@ -136,10 +134,70 @@ async def on_command_error(error, ctx):
                                         "{}".format(error))
 
 
+@bot.command(hidden=True)
+@perms.is_dev()
+async def load(*, cog: str):
+    cog_list = []
+    for file in os.listdir("cogs"):
+        if file.endswith(".py"):
+            cog_list.append("cogs.{}".format(file.replace(".py", "")))
+
+    l_cog_name = "cogs.{}".format(cog)
+    # print(cog, cog_name, cog_list)
+
+    if l_cog_name in cog_list:
+        try:
+            bot.load_extension(l_cog_name)
+            await bot.say("Successfully loaded cog '{}'.".format(cog))
+        except Exception as e:
+            await bot.say("Failed to load cog '{}'. Reason: {}".format(cog, type(e).__name__))
+            return
+    else:
+        await bot.say("No cog called '{}'.".format(cog))
+        return
+
+    with open(filepath, "r") as f:
+        data = json.loads(f.read())
+        data['cogs'][cog] = True
+
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+@bot.command()
+@perms.is_dev()
+async def unload(*, cog: str):
+    ext_list = bot.extensions
+    cog_list = []
+    for cogs in ext_list:
+        cog_list.append(cogs)
+
+    l_cog_name = "cogs.{}".format(cog)
+    # print(cog, cog_name, cog_list)
+
+    if l_cog_name in cog_list:
+        try:
+            bot.unload_extension(l_cog_name)
+            await bot.say("Successfully unloaded cog '{}'.".format(cog))
+        except Exception as e:
+            await bot.say("Failed to unload cog '{}'. Reason: {}".format(cog, type(e).__name__))
+            return
+    else:
+        await bot.say("No (loaded) cog called '{}'.".format(cog))
+        return
+
+    with open(filepath, "r") as f:
+        data = json.loads(f.read())
+        data['cogs'][cog] = False
+
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=4)
+
+
 @bot.command()
 @perms.is_server_owner_or_dev()
 async def bot_welcome():
-    """Toggle whether bot handles newcomers when mods are online or not (MODS ONLY)"""
+    """Toggle whether bot handles newcomers when mods are online (MODS ONLY)"""
     # cd = os.path.dirname(os.path.realpath(__file__))
     # filepath = os.path.join(cd, "configs", "settings.json")
 
@@ -215,6 +273,7 @@ if __name__ == '__main__':
     s_data = {}
     cd = os.path.dirname(os.path.realpath(__file__))
     filepath = os.path.join(cd, "configs", "settings.json")  # "/configs/settings.json"
+    should_write_after_finish = False
     # print(file)
 
     if os.path.isfile(filepath) is False:
@@ -232,18 +291,22 @@ if __name__ == '__main__':
     for file in os.listdir("cogs"):
         if file.endswith(".py"):
             cog_name = file.replace(".py", "")
-            cog_path = "cogs.{}".format(cog_name)  # os.path.join("cogs/", cog_name)
-            # print(cog_name, cog_path)
+            cog_path = "cogs.{}".format(cog_name)
 
             if first_time is True:
                 s_data['cogs'][cog_name] = True
                 should_load = True
             else:
-                should_load = s_data['cogs'][cog_name]
+                try:
+                    should_load = s_data['cogs'][cog_name]
+                except KeyError:  # most likely cause is a new cog
+                    s_data['cogs'][cog_name] = True
+                    should_load = True
+                    should_write_after_finish = True
             if should_load is True:
                 try:
                     bot.load_extension(cog_path)
-                    print("Sucessfully loaded cog '{}'".format(cog_name))
+                    # print("Sucessfully loaded cog '{}'".format(cog_name))
                 except Exception as exc:
                     print("Failed to load cog '{}', Reason: {}".format(cog_name, type(exc).__name__))
 
@@ -253,6 +316,10 @@ if __name__ == '__main__':
         token = None
     else:
         token = s_data['token']
+
+    if should_write_after_finish is True:
+        with open(filepath, "w") as f_write:
+            json.dump(s_data, f_write, indent=4)
 
     if token:
         bot.run(token)

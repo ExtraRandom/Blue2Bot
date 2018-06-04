@@ -35,7 +35,7 @@ class General:
             await self.bot.say("Use '=help react' to see subcommands")
 
     @react.command(pass_context=True, aliases=["rs"])
-    @perms.is_server_owner_or_dev()
+    @perms.is_server_owners()
     async def add(self, ctx):
         """For adding custom reacts for people (MOD ONLY)"""
         # http://discordpy.readthedocs.io/en/latest/api.html#discord.Client.wait_for_reaction
@@ -128,7 +128,7 @@ class General:
             return
 
     @react.command(pass_context=True)
-    @perms.is_server_owner_or_dev()
+    @perms.is_server_owners()
     async def remove(self, ctx):
         """For removing a custom react from a user (MOD ONLY)"""
         e_user = None
@@ -225,7 +225,7 @@ class General:
                         return
 
     @react.command()
-    @perms.is_server_owner_or_dev()
+    @perms.is_server_owners()
     async def list(self):
         """List the available reaction options"""
         r_msg = await self.bot.say("Reaction Options: ")
@@ -238,7 +238,7 @@ class General:
                 return
 
     @react.command()
-    @perms.is_server_owner_or_dev()
+    @perms.is_server_owners()
     async def view(self, user: str):
         """View all of a user's reacts (MOD ONLY)"""
 
@@ -259,11 +259,6 @@ class General:
                                  value="{}".format(emoji))  # .format(data[user][i]['emoji']))
 
         await self.bot.say(embed=result)
-
-    @commands.command()
-    async def github(self):
-        """Provide link to the bot's source code"""
-        await self.bot.say("https://github.com/ExtraRandom/StellarBot")
 
     async def process_user(self, user):
         s = self.bot.get_server("442608736864043008")

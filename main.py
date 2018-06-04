@@ -5,15 +5,34 @@ import json
 from datetime import datetime
 import asyncio
 import os
-from utils import perms
+from utils import perms, IO
+from utils.logger import Logger
 
-bot = commands.Bot(command_prefix='=', description="Stellar Bot", pm_help=False)
+bot = commands.Bot(command_prefix='=',
+                   description="Stellar Bot\n"
+                               "Developed by @Extra_Random#2564\n"
+                               "Source code: https://github.com/ExtraRandom/StellarBot\n"
+                               "Report an Issue: "
+                               "https://github.com/ExtraRandom/StellarBot/issues/new"
+                   , pm_help=False)
 
 
 @bot.event
 async def on_ready():
     login_time = datetime.now()
     print("Bot Logged In at {}".format(login_time))
+
+    Logger.check_for_folder()
+    # print(Logger.get_filename())
+
+    data = IO.read_settings_as_json()
+    if data is None:
+        raise Exception(IO.generic_fail_read)
+
+    data['last-login-time'] = str(login_time)
+
+    if IO.write_settings(data) is False:
+        print(IO.generic_fail_write)
 
 
 @bot.event
@@ -57,9 +76,11 @@ async def on_member_join(member):
     skiz = get_member_from_id("438678163229507584")
     extr = get_member_from_id("92562410493202432")
 
-    with open(filepath, "r") as f:
-        r_data = f.read()
-        data = json.loads(r_data)
+    data = IO.read_settings_as_json()
+    if data is None:
+        await bot.send_message(c, "Warning: Failed to read settings to check whether to handle welcoming newcomers.\n"
+                                  "Will not handle until this issue is fixed.")
+        return
 
     if data['handle-newcomers'] is False:
         # If False then bot will only handle newcomers when Mod's are offline
@@ -137,13 +158,13 @@ async def on_command_error(error, ctx):
 @bot.command(hidden=True)
 @perms.is_dev()
 async def load(*, cog: str):
+    """Load a cog"""
     cog_list = []
-    for file in os.listdir("cogs"):
-        if file.endswith(".py"):
-            cog_list.append("cogs.{}".format(file.replace(".py", "")))
+    for c_file in os.listdir("cogs"):
+        if c_file.endswith(".py"):
+            cog_list.append("cogs.{}".format(c_file.replace(".py", "")))
 
-    l_cog_name = "cogs.{}".format(cog)
-    # print(cog, cog_name, cog_list)
+    l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
 
     if l_cog_name in cog_list:
         try:
@@ -156,24 +177,28 @@ async def load(*, cog: str):
         await bot.say("No cog called '{}'.".format(cog))
         return
 
-    with open(filepath, "r") as f:
-        data = json.loads(f.read())
-        data['cogs'][cog] = True
+    data = IO.read_settings_as_json()
+    if data is None:
+        await bot.say(IO.generic_fail_read)
+        return
 
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=4)
+    data['cogs'][cog] = True
+
+    if IO.write_settings(data) is False:
+        await bot.say(IO.generic_fail_write)
+        return
 
 
-@bot.command()
+@bot.command(hidden=True)
 @perms.is_dev()
 async def unload(*, cog: str):
+    """Unload a cog"""
     ext_list = bot.extensions
     cog_list = []
     for cogs in ext_list:
         cog_list.append(cogs)
 
-    l_cog_name = "cogs.{}".format(cog)
-    # print(cog, cog_name, cog_list)
+    l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
 
     if l_cog_name in cog_list:
         try:
@@ -186,33 +211,36 @@ async def unload(*, cog: str):
         await bot.say("No (loaded) cog called '{}'.".format(cog))
         return
 
-    with open(filepath, "r") as f:
-        data = json.loads(f.read())
-        data['cogs'][cog] = False
-
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=4)
+    data = IO.read_settings_as_json()
+    if data is None:
+        await bot.say(IO.generic_fail_read)
+        return
+    data['cogs'][cog] = False
+    if IO.write_settings(data) is False:
+        await bot.say(IO.generic_fail_write)
+        return
 
 
 @bot.command()
-@perms.is_server_owner_or_dev()
+@perms.is_server_owners()
 async def bot_welcome():
-    """Toggle whether bot handles newcomers when mods are online (MODS ONLY)"""
-    # cd = os.path.dirname(os.path.realpath(__file__))
-    # filepath = os.path.join(cd, "configs", "settings.json")
+    """Toggle bot dealing with new people (MODS ONLY)
+    Toggles whether bot handles newcomers when mods are online
+    Bot will still handle newcomers when no mods are online despite whether this is set or not"""
 
-    with open(filepath, "r") as f:
-        r_data = f.read()
+    data = IO.read_settings_as_json()
+    if data is None:
+        await bot.say(IO.generic_fail_read)
+        return
 
-    data = json.loads(r_data)
     current = bool(data['handle-newcomers'])
 
     new = not current
-
     data['handle-newcomers'] = new
 
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=4)
+    if IO.write_settings(data) is False:
+        await bot.say(IO.generic_fail_write)
+        return
 
     if current is True:
         await bot.say("Turning off bot welcome handling, will still handle newcomers if no mods are online")
@@ -271,12 +299,11 @@ async def react(msg, emoji):
 if __name__ == '__main__':
     first_time = False
     s_data = {}
-    cd = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(cd, "configs", "settings.json")  # "/configs/settings.json"
+    # cd = os.path.dirname(os.path.realpath(__file__))
+    # filepath = os.path.join(cd, "configs", "settings.json")  # "/configs/settings.json"
     should_write_after_finish = False
-    # print(file)
 
-    if os.path.isfile(filepath) is False:
+    if os.path.isfile(IO.settings_file_path) is False:
         print("First Time Run - Creating Settings JSON")
         # file doesn't exist
         first_time = True
@@ -284,9 +311,9 @@ if __name__ == '__main__':
         s_data['handle-newcomers'] = False
         s_data['cogs'] = {}
     else:
-        with open(filepath, "r") as f_read:
-            f_data = f_read.read()
-            s_data = json.loads(f_data)
+        s_data = IO.read_settings_as_json()
+        if s_data is None:
+            raise Exception(IO.generic_fail_read)
 
     for file in os.listdir("cogs"):
         if file.endswith(".py"):
@@ -303,6 +330,13 @@ if __name__ == '__main__':
                     s_data['cogs'][cog_name] = True
                     should_load = True
                     should_write_after_finish = True
+
+                """Here is where all the stuff to prevent issues when updating goes"""
+                try:
+                    test_newcomers = s_data['handle-newcomers']
+                except KeyError:
+                    s_data['handle-newcomers'] = False
+
             if should_load is True:
                 try:
                     bot.load_extension(cog_path)
@@ -311,15 +345,15 @@ if __name__ == '__main__':
                     print("Failed to load cog '{}', Reason: {}".format(cog_name, type(exc).__name__))
 
     if first_time is True:
-        with open(filepath, "w") as f_write:
-            json.dump(s_data, f_write, indent=4)
+        if IO.write_settings(s_data) is False:
+            raise Exception(IO.generic_fail_write)
         token = None
     else:
         token = s_data['token']
 
     if should_write_after_finish is True:
-        with open(filepath, "w") as f_write:
-            json.dump(s_data, f_write, indent=4)
+        if IO.write_settings(s_data) is False:
+            raise Exception(IO.generic_fail_write)
 
     if token:
         bot.run(token)

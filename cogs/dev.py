@@ -1,18 +1,16 @@
 from discord.ext import commands
-from utils import perms
+from utils import perms, IO
+from utils.logger import Logger
 import os
 import json
+from datetime import datetime, timedelta
+
 
 class Dev:
     def __init__(self, bot):
         self.bot = bot
         # cd = os.path.dirname(os.path.realpath())
-        self.filepath = os.path.join("configs", "settings.json")
-
-    @commands.command()
-    @perms.is_dev()
-    async def uptime(self):
-        print("dang it")
+        # self.filepath = os.path.join("configs", "settings.json")
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -33,7 +31,55 @@ class Dev:
                 image_bytes = bytearray(f)
                 await self.bot.edit_profile(avatar=image_bytes)
         except Exception as e:
-            await self.bot.say("uh it errored or something")
+            await self.bot.say("Failed to change avatar")
+
+    @commands.command()
+    async def uptime(self):
+        """Shows the bots current uptime"""
+        try:
+            data = IO.read_settings_as_json()
+            if data is None:
+                await self.bot.say(IO.generic_fail_read)
+                return
+
+            login_time = datetime.strptime(data['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
+            now = datetime.now()
+
+            td = timedelta.total_seconds(now - login_time)
+            td = int(td)
+
+            m, s = divmod(td, 60)
+            h, m = divmod(m, 60)
+            uptime = "%d:%02d:%02d" % (h, m, s)
+
+            await self.bot.say("Bot Uptime: {}".format(uptime))
+
+        except Exception as e:
+            await self.bot.say("Error getting bot uptime. Reason: {}".format(type(e).__name__))
+
+    @commands.command()
+    async def github(self):
+        """Provide link to the bot's source code"""
+        await self.bot.say("https://github.com/ExtraRandom/StellarBot")
+
+    @commands.command(hidden=True)
+    @perms.is_server_owners()
+    async def welcoming(self):
+        """See whether the bot is currently welcoming newcomers"""
+        data = IO.read_settings_as_json()
+        if data is None:
+            await self.bot.say(IO.generic_fail_read)
+            return
+
+        current = bool(data['handle-newcomers'])
+        if current is True:
+            await self.bot.say("Bot is currently handling newcomers even if mods are online.")
+            return
+        else:
+            await self.bot.say("Bot isn't handling newcomers whilst mods are online, "
+                               "will still handle newcomers if all mods go offline")
+            return
+
 
 def setup(bot):
     bot.add_cog(Dev(bot))

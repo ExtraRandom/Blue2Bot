@@ -2,7 +2,8 @@ from discord.ext import commands
 import json
 import discord
 from discord.utils import get
-from utils import perms
+from utils import perms, IO
+from utils.logger import Logger
 
 
 class General:
@@ -237,14 +238,17 @@ class General:
                 await self.bot.say("Please don't add other reactions >:(")
                 return
 
-    @react.command()
+    @react.command(pass_context=True)
     @perms.is_server_owners()
-    async def view(self, user: str):
-        """View all of a user's reacts (MOD ONLY)"""
+    async def view(self, ctx):  # user: str, *, ctx):
+        """View all of a user's reacts (MOD ONLY)
+        Mention a user to see their reacts.
+        Don't mention anyone to see your own reacts"""
 
-        # print(user)
-        user = await General.process_user(self, user)
-        # print(user)
+        if len(ctx.message.mentions) > 0:
+            user = "{}#{}".format(ctx.message.mentions[0].name, ctx.message.mentions[0].discriminator)
+        else:
+            user = "{}#{}".format(ctx.message.author.name, ctx.message.author.discriminator)
 
         data = read_in_file()
 
@@ -259,17 +263,6 @@ class General:
                                  value="{}".format(emoji))  # .format(data[user][i]['emoji']))
 
         await self.bot.say(embed=result)
-
-    async def process_user(self, user):
-        s = self.bot.get_server("442608736864043008")
-        if user.startswith("<@!"):
-            user = str(s.get_member(str(user).replace("<@!", "").replace(">", "")))
-            return user
-        elif user.startswith("<@"):
-            user = str(s.get_member(str(user).replace("<@!", "").replace(">", "")))
-            return user
-        else:
-            return user
 
 
 def add_to_file(user, word, emoji):
@@ -299,23 +292,20 @@ def add_to_file(user, word, emoji):
 
 
 def read_in_file():
-    try:
-        with open("configs/custom_reacts.json", "r") as f:
-            data = json.loads(f.read())
-        return data
-    except Exception as e:
-        print(type(e).__name__)
-        return False
+    data = IO.read_custom_reacts_as_json()
+    if data is None:
+        Logger.write("{} - Failed to read custom reacts json file".format(Logger.time_now()))
+        return
+    return data
 
 
 def write_file(data):
-    try:
-        with open("configs/custom_reacts.json", "w") as f:
-            json.dump(data, f, indent=4)
-            return True
-    except Exception as e:
-        print(type(e).__name__)
+
+    written = IO.write_custom_reacts(data)
+    if written is False:
+        Logger.write("{} - Failed to write to custom reacts json file".format(Logger.time_now()))
         return False
+    return True
 
 
 def setup(bot):

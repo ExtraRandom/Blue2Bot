@@ -36,13 +36,31 @@ class Logger:
 
         if not os.path.exists(os.path.join("logs", file_name)):
             with open(os.path.join("logs", file_name), "w") as f:
-                f.write("Log start")
+                f.write("Log Started\n")
 
         return file_name
 
     @staticmethod
+    def write_and_print(to_write):
+        print(to_write)
+        if Logger.write(to_write) is True:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def log_write(data):
+        try:
+            with open(os.path.join(os.path.join("logs", Logger.get_filename())), "a") as lf:
+                lf.write(data)
+                lf.write("\n")
+                return True
+        except Exception as e:
+            print("Error writing to log file. Reason: {}".format(type(e).__name__))
+            return False
+
+    @staticmethod
     def write(to_write):
-        # TODO 
         if Logger.check_for_folder() is False:
             return False
 
@@ -51,22 +69,39 @@ class Logger:
             return "Failed to write error log, File is None"
 
         if isinstance(to_write, str):
-            print("to write is a string")
+            if Logger.log_write("{} - {}".format(Logger.time_now(), to_write)) is True:
+                return True
+            else:
+                return False
 
         elif isinstance(to_write, Exception):
-            print("to write is an exception")
+            print("An exception has occurred. Check the logs for more info")
+
             ex_type = type(to_write).__name__
             args = to_write.args
-
             err_line = to_write.__traceback__.tb_lineno
             err_file = to_write.__traceback__.tb_frame.f_code.co_filename
 
-            cause = to_write.__traceback__.tb_frame.f_trace
+            err_msg = "----------------------------------------------------------\n" \
+                      "An Exception Occurred at {}\n" \
+                      "Type: {}\n" \
+                      "Args: {}\n" \
+                      "File: {}\n" \
+                      "Line: {}\n" \
+                      "----------------------------------------------------------" \
+                      "".format(Logger.time_now(), ex_type, args, err_file, err_line)
 
-            print(args, err_file, err_line)
-
+            if Logger.log_write(err_msg) is True:
+                return True
+            else:
+                return False
         else:
-            print("to write is something else")
+            print("Logging for type '{}' currently not handled".format(type(to_write)))
+            if Logger.log_write("{} - Tried to write data of type '{}' to log."
+                                "".format(Logger.time_now(), type(to_write))) is True:
+                return True
+            else:
+                return False
 
 
 

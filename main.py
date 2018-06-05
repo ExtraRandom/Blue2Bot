@@ -20,12 +20,8 @@ bot = commands.Bot(command_prefix='=',
 @bot.event
 async def on_ready():
     login_time = datetime.now()
-    print("Bot Logged In at {}".format(login_time))
-
-    Logger.check_for_folder()
-    # print(Logger.get_filename())
-
     data = IO.read_settings_as_json()
+
     if data is None:
         raise Exception(IO.generic_fail_read)
 
@@ -33,6 +29,10 @@ async def on_ready():
 
     if IO.write_settings(data) is False:
         print(IO.generic_fail_write)
+
+    Logger.write_and_print("Bot Logged In at {}".format(login_time))
+    # Logger.check_for_folder()
+    # print(Logger.get_filename())
 
 
 @bot.event

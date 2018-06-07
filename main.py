@@ -23,12 +23,12 @@ async def on_ready():
     data = IO.read_settings_as_json()
 
     if data is None:
-        raise Exception(IO.generic_fail_read)
+        raise Exception(IO.settings_fail_read)
 
     data['last-login-time'] = str(login_time)
 
     if IO.write_settings(data) is False:
-        print(IO.generic_fail_write)
+        print(IO.settings_fail_write)
 
     Logger.write_and_print("Bot Logged In at {}".format(login_time))
     # Logger.check_for_folder()
@@ -143,7 +143,14 @@ async def on_member_join(member):
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
 
+    # r_cmd = ctx.message.content
+    # cmd = r_cmd.split(" ")[0].replace(bot.command_prefix, "")
+    # print(cmd)
+
     if isinstance(error, commands.MissingRequiredArgument):
+        # c_obj = bot.get_command(cmd)
+        # print(c_obj.help)
+
         await bot.send_message(channel, "Missing Argument")
     elif isinstance(error, commands.CommandNotFound):
         pass
@@ -179,13 +186,13 @@ async def load(*, cog: str):
 
     data = IO.read_settings_as_json()
     if data is None:
-        await bot.say(IO.generic_fail_read)
+        await bot.say(IO.settings_fail_read)
         return
 
     data['cogs'][cog] = True
 
     if IO.write_settings(data) is False:
-        await bot.say(IO.generic_fail_write)
+        await bot.say(IO.settings_fail_write)
         return
 
 
@@ -213,15 +220,15 @@ async def unload(*, cog: str):
 
     data = IO.read_settings_as_json()
     if data is None:
-        await bot.say(IO.generic_fail_read)
+        await bot.say(IO.settings_fail_read)
         return
     data['cogs'][cog] = False
     if IO.write_settings(data) is False:
-        await bot.say(IO.generic_fail_write)
+        await bot.say(IO.settings_fail_write)
         return
 
 
-@bot.command()
+@bot.command(hidden=True)
 @perms.is_server_owners()
 async def bot_welcome():
     """Toggle bot dealing with new people (MODS ONLY)
@@ -230,7 +237,7 @@ async def bot_welcome():
 
     data = IO.read_settings_as_json()
     if data is None:
-        await bot.say(IO.generic_fail_read)
+        await bot.say(IO.settings_fail_read)
         return
 
     current = bool(data['handle-newcomers'])
@@ -239,7 +246,7 @@ async def bot_welcome():
     data['handle-newcomers'] = new
 
     if IO.write_settings(data) is False:
-        await bot.say(IO.generic_fail_write)
+        await bot.say(IO.settings_fail_write)
         return
 
     if current is True:
@@ -250,114 +257,144 @@ async def bot_welcome():
 
 async def custom_reaction(message):
     msg = str(message.content).lower()
+    user = "{}#{}".format(message.author.name, message.author.discriminator)
 
-    with open("configs/custom_reacts.json", "r") as f:
-        data = json.loads(f.read())
-        user = str(message.author)
-        try:
-            for i in range(len(data[user])):
-                try:
-                    word = data[user][i]['word']
-                except KeyError:
-                    print("Key Error")
-                    return False
+    data = IO.read_custom_reacts_as_json()
+    if data is None:
+        Logger.write_and_print(IO.react_fail_read)
+        return False
 
-                if word in msg:
-                    emoji = get(bot.get_all_emojis(), name=data[user][i]['emoji'])
-                    if emoji is None:
-                        await bot.send_message(message.channel, "Emoji '{}' doesn't exist!".format(data[user][i]['emoji']))
-                        return
-                    # when = str(data[user][i]['when'])
+    try:
+        test = data[user]
+    except KeyError as ex:
+        return False
 
-                    # print(message.content)
+    try:
+        for i in range(len(data[user])):
+            try:
+                word = data[user][i]['word']
+            except KeyError:
+                print("Key Error")
+                return False
 
-                    if msg.startswith(word.lower()):
-                        pass  # print("starts with")
-                    elif " {} ".format(word.lower()) in msg:
-                        pass  # print("in there with spaces")
-                    elif "{} ".format(word.lower()) in msg:
-                        pass  # print("in there with space after")
-                    elif " {}".format(word.lower()) in msg:
-                        pass  # print("in there with space before")
-                    else:
-                        # print("probably an emoji")
-                        return
-                    await react(message, emoji)
+            if word in msg:
+                emoji = get(bot.get_all_emojis(), name=data[user][i]['emoji'])
+                if emoji is None:
+                    await bot.send_message(message.channel, "Emoji '{}' doesn't exist!".format(data[user][i]['emoji']))
+                    return
 
-        except Exception:
-            pass
+                if msg.startswith(word.lower()):
+                    pass
+                elif " {} ".format(word.lower()) in msg:
+                    pass
+                elif "{} ".format(word.lower()) in msg:
+                    pass
+                elif " {}".format(word.lower()) in msg:
+                    pass
+                else:
+                    return
+                await react(message, emoji)
+
+    except Exception as e:
+        Logger.write(e)
 
 
 async def react(msg, emoji):
     try:
         await bot.add_reaction(msg, emoji)
     except Exception as ex:
-        print(ex)
+        Logger.write(ex)
         return
+
+
+def get_cogs_in_folder():
+    c_list = []
+    for file in os.listdir("cogs"):
+        if file.endswith(".py"):
+            c_list.append(file.replace(".py", ""))
+    return c_list
+
+
+def get_cogs_in_settings():
+    c_list = []
+    data = IO.read_settings_as_json()
+    if data is None:
+        return None
+    for cog in data['cogs']:
+        c_list.append(cog)
+    return c_list
 
 
 if __name__ == '__main__':
     first_time = False
     s_data = {}
-    # cd = os.path.dirname(os.path.realpath(__file__))
-    # filepath = os.path.join(cd, "configs", "settings.json")  # "/configs/settings.json"
     should_write_after_finish = False
 
+    """First time run check"""
     if os.path.isfile(IO.settings_file_path) is False:
         print("First Time Run - Creating Settings JSON")
-        # file doesn't exist
         first_time = True
         s_data['token'] = None
         s_data['handle-newcomers'] = False
         s_data['cogs'] = {}
+        s_data['last-login-time'] = None
     else:
         s_data = IO.read_settings_as_json()
         if s_data is None:
-            raise Exception(IO.generic_fail_read)
+            raise Exception(IO.settings_fail_read)
 
-    for file in os.listdir("cogs"):
-        if file.endswith(".py"):
-            cog_name = file.replace(".py", "")
-            cog_path = "cogs.{}".format(cog_name)
+    """Update JSON with new settings if it doesn't have them to prevent potential issues"""
+    try:
+        test_newcomers = s_data['handle-newcomers']
+    except KeyError:
+        s_data['handle-newcomers'] = False
 
-            if first_time is True:
-                s_data['cogs'][cog_name] = True
+    """Load cogs"""
+    folder_cogs = get_cogs_in_folder()
+    for folder_cog in folder_cogs:
+        cog_path = "cogs.{}".format(folder_cog)
+        if first_time is True:
+            s_data['cogs'][folder_cog] = True
+            should_load = True
+        else:
+            try:
+                should_load = s_data['cogs'][folder_cog]
+            except KeyError:
+                print("New Cog {}".format(folder_cog))
+                s_data['cogs'][folder_cog] = True
                 should_load = True
-            else:
-                try:
-                    should_load = s_data['cogs'][cog_name]
-                except KeyError:  # most likely cause is a new cog
-                    s_data['cogs'][cog_name] = True
-                    should_load = True
-                    should_write_after_finish = True
-
-                """Here is where all the stuff to prevent issues when updating goes"""
-                try:
-                    test_newcomers = s_data['handle-newcomers']
-                except KeyError:
-                    s_data['handle-newcomers'] = False
 
             if should_load is True:
                 try:
                     bot.load_extension(cog_path)
-                    # print("Sucessfully loaded cog '{}'".format(cog_name))
                 except Exception as exc:
-                    print("Failed to load cog '{}', Reason: {}".format(cog_name, type(exc).__name__))
+                    print("Failed to load cog '{}', Reason: {}".format(folder_cog, type(exc).__name__))
 
+    """Get token"""
     if first_time is True:
         if IO.write_settings(s_data) is False:
-            raise Exception(IO.generic_fail_write)
+            raise Exception(IO.settings_fail_write)
         token = None
     else:
         token = s_data['token']
 
+    """Clean up removed cogs from settings"""
+    r_cogs = get_cogs_in_folder()
+    f_cogs = get_cogs_in_settings()
+    for f_cog in f_cogs:
+        if f_cog not in r_cogs:
+            print("Cog {} no longer exists, removing settings entry".format(f_cog))
+            del s_data['cogs'][f_cog]
+            should_write_after_finish = True
+
+    """Write settings to file"""
     if should_write_after_finish is True:
         if IO.write_settings(s_data) is False:
-            raise Exception(IO.generic_fail_write)
+            raise Exception(IO.settings_fail_write)
 
     if token:
         bot.run(token)
     else:
-        print("Token is not set! Go to {} and change the token parameter!".format(filepath))
+        print("Token is not set! Go to {} and change the token parameter!".format(IO.settings_file_path))
 
 

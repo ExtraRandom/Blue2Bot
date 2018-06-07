@@ -9,6 +9,7 @@ def is_server_owners():
 
     return commands.check(predicate)
 
+
 """
 def is_server_owner():
     def predicate(ctx):

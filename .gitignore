@@ -105,3 +105,4 @@ venv.bak/
 *.xml
 .idea/*
 configs/settings.json
+logs/*

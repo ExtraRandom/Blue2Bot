@@ -4,13 +4,12 @@ from utils.logger import Logger
 import os
 import json
 from datetime import datetime, timedelta
+import traceback
 
 
 class Dev:
     def __init__(self, bot):
         self.bot = bot
-        # cd = os.path.dirname(os.path.realpath())
-        # self.filepath = os.path.join("configs", "settings.json")
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -39,7 +38,7 @@ class Dev:
         try:
             data = IO.read_settings_as_json()
             if data is None:
-                await self.bot.say(IO.generic_fail_read)
+                await self.bot.say(IO.settings_fail_read)
                 return
 
             login_time = datetime.strptime(data['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
@@ -68,7 +67,7 @@ class Dev:
         """See whether the bot is currently welcoming newcomers"""
         data = IO.read_settings_as_json()
         if data is None:
-            await self.bot.say(IO.generic_fail_read)
+            await self.bot.say(IO.settings_fail_read)
             return
 
         current = bool(data['handle-newcomers'])
@@ -79,6 +78,18 @@ class Dev:
             await self.bot.say("Bot isn't handling newcomers whilst mods are online, "
                                "will still handle newcomers if all mods go offline")
             return
+
+    @commands.command(hidden=True, pass_context=True)
+    @perms.is_dev()
+    async def test(self, ctx):
+        command = "react"
+        c_obj = self.bot.get_command(command)
+
+        print(dir(c_obj))
+        print("h", c_obj.help)
+        print("d", c_obj.description)
+        print("c", c_obj.commands)
+        print("cd", c_obj.command)
 
 
 def setup(bot):

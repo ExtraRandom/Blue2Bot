@@ -2,13 +2,13 @@ import os
 import json
 from utils.logger import Logger
 
-# TODO handle all file IO here
-
-# Most methods are using this except for react commands in general
 # Logger IO is handled in logger.py
 
-generic_fail_read = "Failed to read settings"
-generic_fail_write = "Failed to write settings"
+settings_fail_read = "Failed to read settings"
+settings_fail_write = "Failed to write settings"
+
+react_fail_read = "Failed to read custom reacts file"
+react_fail_write = "Failed to write custom reacts file"
 
 settings_file_path = os.path.join("configs", "settings.json")
 reacts_file_path = os.path.join("configs", "custom_reacts.json")

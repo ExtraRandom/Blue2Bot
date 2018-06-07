@@ -35,7 +35,7 @@ class General:
         if ctx.invoked_subcommand is None:
             await self.bot.say("Use '=help react' to see subcommands")
 
-    @react.command(pass_context=True, aliases=["rs"])
+    @react.command(pass_context=True)
     @perms.is_server_owners()
     async def add(self, ctx):
         """For adding custom reacts for people (MOD ONLY)"""

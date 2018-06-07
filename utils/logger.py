@@ -2,10 +2,10 @@ from datetime import datetime
 import os
 import json
 from utils import IO
+import traceback
 
 
 class Logger:
-
     @staticmethod
     def time_now():
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -36,7 +36,7 @@ class Logger:
 
         if not os.path.exists(os.path.join("logs", file_name)):
             with open(os.path.join("logs", file_name), "w") as f:
-                f.write("Log Started\n")
+                f.write("")  # Log Started\n")
 
         return file_name
 
@@ -82,14 +82,19 @@ class Logger:
             err_line = to_write.__traceback__.tb_lineno
             err_file = to_write.__traceback__.tb_frame.f_code.co_filename
 
+            fmt_tb = traceback.format_exc()
+            tb_split = fmt_tb.split("\n")
+            err_code = tb_split[2].strip()
+
             err_msg = "----------------------------------------------------------\n" \
                       "An Exception Occurred at {}\n" \
                       "Type: {}\n" \
                       "Args: {}\n" \
                       "File: {}\n" \
                       "Line: {}\n" \
+                      "Code: {}\n" \
                       "----------------------------------------------------------" \
-                      "".format(Logger.time_now(), ex_type, args, err_file, err_line)
+                      "".format(Logger.time_now(), ex_type, args, err_file, err_line, err_code)
 
             if Logger.log_write(err_msg) is True:
                 return True

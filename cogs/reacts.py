@@ -2,8 +2,8 @@ from discord.ext import commands
 import json
 import discord
 from discord.utils import get
-from utils import perms, IO
-from utils.logger import Logger
+from cogs.utils import perms, IO
+from cogs.utils.logger import Logger
 
 
 class General:

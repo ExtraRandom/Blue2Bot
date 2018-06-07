@@ -1,10 +1,6 @@
 from discord.ext import commands
-from utils import perms, IO
-from utils.logger import Logger
-import os
-import json
+from cogs.utils import perms, IO
 from datetime import datetime, timedelta
-import traceback
 
 
 class Dev:
@@ -86,6 +82,7 @@ class Dev:
         c_obj = self.bot.get_command(command)
 
         print(dir(c_obj))
+        print(c_obj.brief)
         print("h", c_obj.help)
         print("d", c_obj.description)
         print("c", c_obj.commands)

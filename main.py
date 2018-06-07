@@ -1,12 +1,11 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-import json
 from datetime import datetime
 import asyncio
 import os
-from utils import perms, IO
-from utils.logger import Logger
+from cogs.utils import perms, IO
+from cogs.utils.logger import Logger
 
 bot = commands.Bot(command_prefix='=',
                    description="Stellar Bot\n"

@@ -28,8 +28,8 @@ class Dev:
                            "+ Loaded Cogs:\n{}\n\n"
                            "- Unloaded Cogs:\n{}"
                            "```"
-                           "".format(", ".join(loaded),
-                                     ", ".join(unloaded)))
+                           "".format(", ".join(sorted(loaded)),
+                                     ", ".join(sorted(unloaded))))
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -52,7 +52,7 @@ class Dev:
                 await self.bot.say(IO.settings_fail_read)
                 return
 
-            login_time = datetime.strptime(data['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
+            login_time = datetime.strptime(data['info']['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
             now = datetime.now()
 
             td = timedelta.total_seconds(now - login_time)

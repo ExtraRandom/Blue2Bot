@@ -24,14 +24,12 @@ async def on_ready():
     if data is None:
         raise Exception(IO.settings_fail_read)
 
-    data['last-login-time'] = str(login_time)
+    data['info']['last-login-time'] = str(login_time)
 
     if IO.write_settings(data) is False:
         print(IO.settings_fail_write)
 
     Logger.write_and_print("Bot Logged In at {}".format(login_time))
-    # Logger.check_for_folder()
-    # print(Logger.get_filename())
 
 
 @bot.event
@@ -55,18 +53,21 @@ async def on_message(message):
 
 @bot.event
 async def on_member_join(member):
-    # print(member.name)
-
     s = bot.get_server("442608736864043008")
+
+    """Only welcome users on Stellar server"""
+    if member.server.id is not s.id:
+        return
+
     c = s.get_channel("449352501393621012")
     r = s.roles
 
-    def get_member_from_id(id):
-        return s.get_member(id)
+    def get_member_from_id(the_id):
+        return s.get_member(the_id)
 
-    def get_role_from_id(id):
+    def get_role_from_id(the_id):
         for role in r:
-            if role.id == id:
+            if role.id == the_id:
                 return role
 
     m_role = get_role_from_id("448402174985240576")
@@ -84,7 +85,6 @@ async def on_member_join(member):
     if data['handle-newcomers'] is False:
         # If False then bot will only handle newcomers when Mod's are offline
         if skiz.status == discord.Status.offline and extr.status == discord.Status.offline:
-            # await bot.send_message(c, "No mod's are online.")
             pass
         else:
             # print("Mod's online")
@@ -119,7 +119,6 @@ async def on_member_join(member):
                                         check=check)
 
     if r_res is not None:
-        # await bot.send_message(c, "reaction was {0.reaction.emoji.name}".format(r_res))
         if r_res.reaction.emoji.name == "SBE_yes":
             # user accepts
             await bot.send_message(c, "Thanks for accepting! Setting up your roles now!")
@@ -133,7 +132,7 @@ async def on_member_join(member):
             return
     else:
         # user didn't reply within 3 minutes
-        await bot.send(c, "3 Minutes with no reply... Bye then")
+        await bot.send(c, "3 Minutes with no reply... Begone!")
         await bot.kick(member)
         return
 
@@ -255,8 +254,12 @@ async def bot_welcome():
 
 
 async def custom_reaction(message):
+    server = message.channel.server.id
     msg = str(message.content).lower()
     user = "{}#{}".format(message.author.name, message.author.discriminator)
+
+    if msg.startswith("="):
+        return False
 
     data = IO.read_custom_reacts_as_json()
     if data is None:
@@ -266,6 +269,14 @@ async def custom_reaction(message):
     try:
         test = data[user]
     except KeyError as ex:
+        return False
+
+    setting_data = IO.read_settings_as_json()
+    if setting_data is None:
+        Logger.write_and_print(IO.settings_fail_read)
+        return False
+
+    if str(server) not in setting_data['react']['react-servers']:
         return False
 
     try:
@@ -333,20 +344,20 @@ if __name__ == '__main__':
     if os.path.isfile(IO.settings_file_path) is False:
         print("First Time Run - Creating Settings JSON")
         first_time = True
-        s_data['token'] = None
-        s_data['handle-newcomers'] = False
+        s_data['keys'] = {}
+        s_data['keys']['token'] = None
+        s_data['keys']['itad-api-key'] = None
         s_data['cogs'] = {}
-        s_data['last-login-time'] = None
+        s_data['react'] = {}
+        s_data['react']['handle-newcomers'] = False
+        s_data['react']['react-servers'] = []
+        s_data['info'] = {}
+        s_data['info']['last-login-time'] = None
+        s_data['info']['chrono-last-check'] = None
     else:
         s_data = IO.read_settings_as_json()
         if s_data is None:
             raise Exception(IO.settings_fail_read)
-
-    """Update JSON with new settings if it doesn't have them to prevent potential issues"""
-    try:
-        test_newcomers = s_data['handle-newcomers']
-    except KeyError:
-        s_data['handle-newcomers'] = False
 
     """Load cogs"""
     folder_cogs = get_cogs_in_folder()
@@ -359,15 +370,17 @@ if __name__ == '__main__':
             try:
                 should_load = s_data['cogs'][folder_cog]
             except KeyError:
-                print("New Cog {}".format(folder_cog))
+                print("New Cog '{}'".format(folder_cog))
                 s_data['cogs'][folder_cog] = True
                 should_load = True
+                should_write_after_finish = True
 
             if should_load is True:
                 try:
                     bot.load_extension(cog_path)
                 except Exception as exc:
                     print("Failed to load cog '{}', Reason: {}".format(folder_cog, type(exc).__name__))
+                    Logger.write(exc)
 
     """Get token"""
     if first_time is True:
@@ -375,7 +388,7 @@ if __name__ == '__main__':
             raise Exception(IO.settings_fail_write)
         token = None
     else:
-        token = s_data['token']
+        token = s_data['keys']['token']
 
     """Clean up removed cogs from settings"""
     r_cogs = get_cogs_in_folder()

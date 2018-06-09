@@ -12,23 +12,6 @@ class General:
 
     # TODO add edit react command
 
-    """
-    @commands.command()
-    async def test_online(self):
-        s = self.bot.get_server("442608736864043008")
-        c = s.get_channel("449352501393621012")
-        r = s.roles
-
-        def get_member_from_id(id):
-            return s.get_member(id)
-
-        skiz = get_member_from_id("438678163229507584")
-        extr = get_member_from_id("92562410493202432")
-
-        print(skiz, extr)
-        print(skiz.status, extr.status)
-    """
-
     @commands.group(pass_context=True)
     async def react(self, ctx):
         """Use =help react to see subcommands"""
@@ -257,10 +240,14 @@ class General:
                                colour=discord.Colour.red())
 
         if user in data:
-            for i in range(len(data[user])):
-                emoji = get(self.bot.get_all_emojis(), name=data[user][i]['emoji'])
-                result.add_field(name="{}".format(data[user][i]['word']),
-                                 value="{}".format(emoji))  # .format(data[user][i]['emoji']))
+            if len(data[user]) == 0:
+                result.add_field(name="User has no Reacts",
+                                 value="Oof")
+            else:
+                for i in range(len(data[user])):
+                    emoji = get(self.bot.get_all_emojis(), name=data[user][i]['emoji'])
+                    result.add_field(name="{}".format(data[user][i]['word']),
+                                     value="{}".format(emoji))  # .format(data[user][i]['emoji']))
 
         await self.bot.say(embed=result)
 

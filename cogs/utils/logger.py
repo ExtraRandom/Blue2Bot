@@ -28,7 +28,7 @@ class Logger:
         if data is None:
             return None
 
-        r_time = data['last-login-time']
+        r_time = data['info']['last-login-time']
         time = str(r_time).split(".")[0].replace(":", "-")
 
         file_name = "Log {}.txt".format(time)

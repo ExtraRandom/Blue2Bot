@@ -15,7 +15,6 @@ bot = commands.Bot(command_prefix='=',
                    pm_help=False)
 
 
-
 @bot.event
 async def on_ready():
     login_time = datetime.now()
@@ -173,7 +172,8 @@ async def on_command_error(error, ctx):
 async def load(*, cog: str):
     """Load a cog"""
     cog_list = []
-    for c_file in os.listdir("cogs"):
+    c_dir = os.path.dirname(os.path.realpath(__file__))
+    for c_file in os.listdir(os.path.join(c_dir, "cogs")):
         if c_file.endswith(".py"):
             cog_list.append("cogs.{}".format(c_file.replace(".py", "")))
 

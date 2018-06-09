@@ -1,6 +1,8 @@
 from discord.ext import commands
+import discord
 from cogs.utils import perms, IO
 from datetime import datetime, timedelta
+import os
 
 
 class Dev:
@@ -56,6 +58,26 @@ class Dev:
     async def github(self):
         """Provide link to the bot's source code"""
         await self.bot.say("https://github.com/ExtraRandom/StellarBot")
+
+    @commands.command()
+    async def changelog(self):
+        if not os.path.isdir(".git"):
+            await self.bot.say("Bot wasn't installed with Git")
+            return
+
+        result = os.popen('git show -s -n 1 HEAD --format="%cr|%s|%H"').read()
+        print("result", result)
+
+        time_ago, changed, commit = result.split("|")
+
+        cl = discord.Embed(title="Bot Changelog",
+                           description="Last Updated: {}".format(time_ago))
+
+        cl.add_field(name="Changes: ",
+                     value="{}".format(changed.replace(" [", "\n[")))
+
+        await self.bot.say(embed=cl)
+
 
     @commands.command(hidden=True)
     @perms.is_server_owners()

@@ -10,8 +10,11 @@ settings_fail_write = "Failed to write settings"
 react_fail_read = "Failed to read custom reacts file"
 react_fail_write = "Failed to write custom reacts file"
 
-settings_file_path = os.path.join("configs", "settings.json")
-reacts_file_path = os.path.join("configs", "custom_reacts.json")
+c_dir = os.path.dirname(os.path.realpath(__file__))
+cwd = c_dir.replace(r"\cogs\utils", "")
+
+settings_file_path = os.path.join(cwd, "configs", "settings.json")
+reacts_file_path = os.path.join(cwd, "configs", "custom_reacts.json")
 
 
 def read_settings_as_json():

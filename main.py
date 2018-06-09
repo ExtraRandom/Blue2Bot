@@ -11,12 +11,14 @@ bot = commands.Bot(command_prefix='=',
                    description="Stellar Bot\n"
                                "Developed by @Extra_Random#2564\n"
                                "Source code: https://github.com/ExtraRandom/StellarBot\n"
-                               "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new"
-                   , pm_help=False)
+                               "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new",
+                   pm_help=False)
 
 
 @bot.event
 async def on_ready():
+    print(Logger.get_cwd())
+
     login_time = datetime.now()
     data = IO.read_settings_as_json()
 

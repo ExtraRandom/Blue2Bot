@@ -71,7 +71,7 @@ class Dev:
         """Provide link to the bot's source code"""
         await self.bot.say("https://github.com/ExtraRandom/StellarBot")
 
-    @commands.command()
+    @commands.command(aliases=["version", "update"])
     async def changelog(self):
         if not os.path.isdir(".git"):
             await self.bot.say("Bot wasn't installed with Git")

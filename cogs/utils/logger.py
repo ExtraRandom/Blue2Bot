@@ -10,6 +10,12 @@ class Logger:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
+    def get_cwd():
+        c_dir = os.path.dirname(os.path.realpath(__file__))
+        cwd = c_dir.replace(r"\cogs\utils", "")
+        return cwd
+
+    @staticmethod
     def check_for_folder():
         """Check for logs folder and create it if it doesn't exist"""
         logs_f = "logs"
@@ -32,9 +38,10 @@ class Logger:
         time = str(r_time).split(".")[0].replace(":", "-")
 
         file_name = "Log {}.txt".format(time)
+        file_path = os.path.join(Logger.get_cwd(), "logs", file_name)
 
-        if not os.path.exists(os.path.join("logs", file_name)):
-            with open(os.path.join("logs", file_name), "w") as f:
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
                 f.write("")  # Log Started\n")
 
         return file_name
@@ -50,7 +57,7 @@ class Logger:
     @staticmethod
     def log_write(data):
         try:
-            with open(os.path.join(os.path.join("logs", Logger.get_filename())), "a") as lf:
+            with open(os.path.join(os.path.join(Logger.get_cwd(), "logs", Logger.get_filename())), "a") as lf:
                 lf.write(data)
                 lf.write("\n")
                 return True

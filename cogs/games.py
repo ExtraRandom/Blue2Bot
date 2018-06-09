@@ -1,10 +1,8 @@
 import discord
 from discord.ext import commands
-
 from GameStoresAPI.Steam.steam import Steam
 from GameStoresAPI.ITAD.itad import Itad
 from cogs.utils import IO
-from cogs.utils.logger import Logger
 
 
 class Games:

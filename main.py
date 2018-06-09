@@ -11,8 +11,7 @@ bot = commands.Bot(command_prefix='=',
                    description="Stellar Bot\n"
                                "Developed by @Extra_Random#2564\n"
                                "Source code: https://github.com/ExtraRandom/StellarBot\n"
-                               "Report an Issue: "
-                               "https://github.com/ExtraRandom/StellarBot/issues/new"
+                               "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new"
                    , pm_help=False)
 
 
@@ -141,21 +140,29 @@ async def on_member_join(member):
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
 
-    # r_cmd = ctx.message.content
-    # cmd = r_cmd.split(" ")[0].replace(bot.command_prefix, "")
-    # print(cmd)
-
     if isinstance(error, commands.MissingRequiredArgument):
         # c_obj = bot.get_command(cmd)
         # print(c_obj.help)
-
         await bot.send_message(channel, "Missing Argument")
     elif isinstance(error, commands.CommandNotFound):
-        pass
+        return
     elif isinstance(error, commands.CheckFailure):
         await bot.send_message(channel, "You do not have permission to use that command!")
 
     else:
+        r_cmd = ctx.message.content
+        cmd = r_cmd.split(" ")[0].replace(bot.command_prefix, "")
+        cog = bot.get_command(cmd).cog_name
+
+        err_msg = "----------------------------------------------------------\n" \
+                  "An Error Occurred at {}\n" \
+                  "Command: {}\n" \
+                  "    Cog: {}\n" \
+                  "  Error: {}\n" \
+                  "   Args: {}\n" \
+                  "----------------------------------------------------------" \
+                  "".format(Logger.time_now(), cmd, cog, error.original, error.args)
+        Logger.log_write(err_msg)
         await bot.send_message(channel, "**Command Errored:**\n "
                                         "{}".format(error))
 

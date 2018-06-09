@@ -13,10 +13,22 @@ class Dev:
     @perms.is_dev()
     async def cogs(self):
         ext_list = self.bot.extensions
-        cog_list = []
+        loaded = []
+        unloaded = []
         for cog in ext_list:
-            cog_list.append(str(cog).replace("cogs.", ""))
-        await self.bot.say("Currently Loaded Cogs: {}".format(", ".join(cog_list)))
+            loaded.append(str(cog).replace("cogs.", ""))
+
+        for cog_f in os.listdir("cogs"):
+            if cog_f.endswith(".py"):
+                if cog_f.replace(".py", "") not in loaded:
+                    unloaded.append(cog_f.replace(".py", ""))
+
+        await self.bot.say("```diff\n"
+                           "+ Loaded Cogs:\n{}\n\n"
+                           "- Unloaded Cogs:\n{}"
+                           "```"
+                           "".format(", ".join(loaded),
+                                     ", ".join(unloaded)))
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -66,7 +78,6 @@ class Dev:
             return
 
         result = os.popen('git show -s -n 1 HEAD --format="%cr|%s|%H"').read()
-        print("result", result)
 
         time_ago, changed, commit = result.split("|")
 
@@ -77,7 +88,6 @@ class Dev:
                      value="{}".format(changed.replace(" [", "\n[")))
 
         await self.bot.say(embed=cl)
-
 
     @commands.command(hidden=True)
     @perms.is_server_owners()
@@ -109,6 +119,11 @@ class Dev:
         print("d", c_obj.description)
         print("c", c_obj.commands)
         print("cd", c_obj.command)
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def err(self):
+        print(10/0)
 
 
 def setup(bot):

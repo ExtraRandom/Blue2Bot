@@ -11,7 +11,7 @@ react_fail_read = "Failed to read custom reacts file"
 react_fail_write = "Failed to write custom reacts file"
 
 c_dir = os.path.dirname(os.path.realpath(__file__))
-cwd = c_dir.replace(r"\cogs\utils", "")
+cwd = os.path.dirname(os.path.dirname(c_dir))
 
 settings_file_path = os.path.join(cwd, "configs", "settings.json")
 reacts_file_path = os.path.join(cwd, "configs", "custom_reacts.json")

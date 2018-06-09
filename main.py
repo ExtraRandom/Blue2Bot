@@ -17,8 +17,6 @@ bot = commands.Bot(command_prefix='=',
 
 @bot.event
 async def on_ready():
-    print(Logger.get_cwd())
-
     login_time = datetime.now()
     data = IO.read_settings_as_json()
 

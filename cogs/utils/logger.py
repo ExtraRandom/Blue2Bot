@@ -12,7 +12,7 @@ class Logger:
     @staticmethod
     def get_cwd():
         c_dir = os.path.dirname(os.path.realpath(__file__))
-        cwd = c_dir.replace(r"\cogs\utils", "")
+        cwd = os.path.dirname(os.path.dirname(c_dir))
         return cwd
 
     @staticmethod

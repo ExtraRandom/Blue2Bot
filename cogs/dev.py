@@ -12,13 +12,14 @@ class Dev:
     @commands.command(hidden=True)
     @perms.is_dev()
     async def cogs(self):
+        c_dir = os.path.dirname(os.path.realpath(__file__))
         ext_list = self.bot.extensions
         loaded = []
         unloaded = []
         for cog in ext_list:
             loaded.append(str(cog).replace("cogs.", ""))
 
-        for cog_f in os.listdir("cogs"):
+        for cog_f in os.listdir(c_dir):
             if cog_f.endswith(".py"):
                 if cog_f.replace(".py", "") not in loaded:
                     unloaded.append(cog_f.replace(".py", ""))

@@ -15,6 +15,7 @@ bot = commands.Bot(command_prefix='=',
                    pm_help=False)
 
 
+
 @bot.event
 async def on_ready():
     login_time = datetime.now()
@@ -325,8 +326,9 @@ async def react(msg, emoji):
 
 
 def get_cogs_in_folder():
+    c_dir = os.path.dirname(os.path.realpath(__file__))
     c_list = []
-    for file in os.listdir("cogs"):
+    for file in os.listdir(os.path.join(c_dir, "cogs")):
         if file.endswith(".py"):
             c_list.append(file.replace(".py", ""))
     return c_list

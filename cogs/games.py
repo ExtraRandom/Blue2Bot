@@ -12,6 +12,7 @@ class Games:
     @commands.command(name="steam", pass_context=True)
     async def steam_search(self, ctx):
         """Search for games on steam"""
+        msg = await self.bot.say("Retrieving data... please wait!")
         replace_str = "{}steam ".format(self.bot.command_prefix)
         term = str(ctx.message.content).strip().replace(replace_str, "")
 
@@ -28,7 +29,7 @@ class Games:
         if results[0]['results'] is False:
             embed.add_field(name="Search",
                             value="No games found using term '{}'".format(term))
-            await self.bot.say(embed=embed)
+            await self.bot.edit_message(msg, embed=embed)
             return
 
         g_counter = 0
@@ -54,7 +55,7 @@ class Games:
                                   "URL: {}"
                                   "".format(results[i]['release_date'], price, steam_link))
 
-        await self.bot.say(embed=embed)
+        await self.bot.edit_message(msg, embed=embed)
 
     @commands.command(pass_context=True)
     async def itad(self, ctx):
@@ -65,7 +66,7 @@ class Games:
         msg = await self.bot.say("Retrieving data... please wait!")
 
         if term == "{}itad".format(self.bot.command_prefix):
-            await self.bot.say("Please provide a search term for the Steam Command")
+            await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
             return
 
         results = Steam.search_by_name(Steam.format_search(term))

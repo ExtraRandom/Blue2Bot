@@ -8,8 +8,7 @@ from cogs.utils import perms, IO
 from cogs.utils.logger import Logger
 
 bot = commands.Bot(command_prefix='=',
-                   description="Stellar Bot\n"
-                               "Developed by @Extra_Random#2564\n"
+                   description="Bot Developed by @Extra_Random#2564\n"
                                "Source code: https://github.com/ExtraRandom/StellarBot\n"
                                "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new",
                    pm_help=False)

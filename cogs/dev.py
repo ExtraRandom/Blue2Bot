@@ -75,11 +75,14 @@ class Dev:
     @commands.command(aliases=["version", "update"])
     async def changelog(self):
         """See what was changed in the last update"""
-        if not os.path.isdir(".git"):
+        c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+        if not os.path.isdir(os.path.join(c_dir, ".git")):
             await self.bot.say("Bot wasn't installed with Git")
             return
 
-        result = os.popen('git show -s -n 1 HEAD --format="%cr|%s|%H"').read()
+        result = os.popen('cd {} &&'
+                          'git show -s -n 1 HEAD --format="%cr|%s|%H"'.format(c_dir)).read()
 
         time_ago, changed, commit = result.split("|")
 

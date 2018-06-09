@@ -19,7 +19,7 @@ class Calculation:
 
     @commands.command()
     async def dltime(self, size_in_gigabytes: float):
-        """See how long it'll take to download a given file size (in GB's)
+        """Calculate time to download given file size (in GB's)
 
         500 MegaBytes (MB) = 0.5 GigaBytes (GB)
         """

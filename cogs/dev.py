@@ -74,6 +74,7 @@ class Dev:
 
     @commands.command(aliases=["version", "update"])
     async def changelog(self):
+        """See what was changed in the last update"""
         if not os.path.isdir(".git"):
             await self.bot.say("Bot wasn't installed with Git")
             return

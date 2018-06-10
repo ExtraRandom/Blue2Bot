@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from GameStoresAPI.Steam.steam import Steam
 from GameStoresAPI.ITAD.itad import Itad
-from cogs.utils import IO
+from cogs.utils import IO, simplify
 
 
 class Games:
@@ -13,11 +13,12 @@ class Games:
     async def steam_search(self, ctx):
         """Search for games on steam"""
         msg = await self.bot.say("Retrieving data... please wait!")
-        replace_str = "{}steam ".format(self.bot.command_prefix)
-        term = str(ctx.message.content).strip().replace(replace_str, "")
 
-        if term == "{}steam".format(self.bot.command_prefix):
-            await self.bot.say("Please provide a search term for the Steam Command")
+        prefixes = self.bot.command_prefix(self.bot, ctx.message)
+
+        term = simplify.remove_prefix_in_message(self.bot, ctx.message, "steam")
+        if term is None:
+            await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
             return
 
         results = Steam.search_by_name(Steam.format_search(term))
@@ -65,7 +66,8 @@ class Games:
 
         msg = await self.bot.say("Retrieving data... please wait!")
 
-        if term == "{}itad".format(self.bot.command_prefix):
+        term = simplify.remove_prefix_in_message(self.bot, ctx.message, "itad")
+        if term is None:
             await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
             return
 

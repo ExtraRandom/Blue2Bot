@@ -10,6 +10,10 @@ class Logger:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
+    def date_now():
+        return datetime.now().strftime("%Y-%m-%d")
+
+    @staticmethod
     def get_cwd():
         c_dir = os.path.dirname(os.path.realpath(__file__))
         cwd = os.path.dirname(os.path.dirname(c_dir))
@@ -34,10 +38,10 @@ class Logger:
         if data is None:
             return None
 
-        r_time = data['info']['last-login-time']
-        time = str(r_time).split(".")[0].replace(":", "-")
+        # r_time = data['info']['last-login-time']
+        # time = str(r_time).split(".")[0].replace(":", "-")
 
-        file_name = "Log {}.txt".format(time)
+        file_name = "Log {}.txt".format(Logger.date_now())
         file_path = os.path.join(Logger.get_cwd(), "logs", file_name)
 
         if not os.path.exists(file_path):

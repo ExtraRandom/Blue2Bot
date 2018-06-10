@@ -4,10 +4,23 @@ from discord.utils import get
 from datetime import datetime
 import asyncio
 import os
-from cogs.utils import perms, IO
+from cogs.utils import perms, IO, simplify
 from cogs.utils.logger import Logger
 
-bot = commands.Bot(command_prefix='=',
+
+def get_prefix(d_bot, message):
+    prefixes = ["?"]
+
+    if message.channel.is_private:
+        return '?'
+
+    if message.channel.server.id == "442608736864043008":
+        return "="
+    else:
+        return commands.when_mentioned_or(*prefixes)(d_bot, message)
+
+
+bot = commands.Bot(command_prefix=get_prefix,
                    description="Bot Developed by @Extra_Random#2564\n"
                                "Source code: https://github.com/ExtraRandom/StellarBot\n"
                                "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new",
@@ -27,7 +40,14 @@ async def on_ready():
     if IO.write_settings(data) is False:
         print(IO.settings_fail_write)
 
-    Logger.write_and_print("Bot Logged In at {}".format(login_time))
+    login_msg = "Bot Logged In at {}".format(login_time)
+    Logger.log_write("----------------------------------------------------------\n"
+                     "{}\n"
+                     "".format(login_msg))
+    print(login_msg)
+
+    game = discord.Game(name="@Blue2#2113 help")
+    await bot.change_presence(game=game)
 
 
 @bot.event
@@ -149,8 +169,7 @@ async def on_command_error(error, ctx):
         await bot.send_message(channel, "You do not have permission to use that command!")
 
     else:
-        r_cmd = ctx.message.content
-        cmd = r_cmd.split(" ")[0].replace(bot.command_prefix, "")
+        cmd = simplify.remove_prefix_no_command(bot, ctx.message)
         cog = bot.get_command(cmd).cog_name
 
         err_msg = "----------------------------------------------------------\n" \

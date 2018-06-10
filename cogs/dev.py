@@ -8,18 +8,18 @@ import os
 class Dev:
     def __init__(self, bot):
         self.bot = bot
+        self.c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     @commands.command(hidden=True)
     @perms.is_dev()
     async def cogs(self):
-        c_dir = os.path.dirname(os.path.realpath(__file__))
         ext_list = self.bot.extensions
         loaded = []
         unloaded = []
         for cog in ext_list:
             loaded.append(str(cog).replace("cogs.", ""))
 
-        for cog_f in os.listdir(c_dir):
+        for cog_f in os.listdir(self.c_dir):
             if cog_f.endswith(".py"):
                 if cog_f.replace(".py", "") not in loaded:
                     unloaded.append(cog_f.replace(".py", ""))
@@ -36,7 +36,7 @@ class Dev:
     async def avatar(self, image: str):
         """Change the bot's avatar (DEV ONLY)"""
         try:
-            with open(image, "rb") as avatar:
+            with open(os.path.join(self.c_dir, image), "rb") as avatar:
                 f = avatar.read()
                 image_bytes = bytearray(f)
                 await self.bot.edit_profile(avatar=image_bytes)
@@ -75,14 +75,12 @@ class Dev:
     @commands.command(aliases=["version", "update"])
     async def changelog(self):
         """See what was changed in the last update"""
-        c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-        if not os.path.isdir(os.path.join(c_dir, ".git")):
+        if not os.path.isdir(os.path.join(self.c_dir, ".git")):
             await self.bot.say("Bot wasn't installed with Git")
             return
 
         result = os.popen('cd {} &&'
-                          'git show -s -n 1 HEAD --format="%cr|%s|%H"'.format(c_dir)).read()
+                          'git show -s -n 1 HEAD --format="%cr|%s|%H"'.format(self.c_dir)).read()
 
         time_ago, changed, commit = result.split("|")
 

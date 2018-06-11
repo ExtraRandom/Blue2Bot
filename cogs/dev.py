@@ -19,7 +19,7 @@ class Dev:
         for cog in ext_list:
             loaded.append(str(cog).replace("cogs.", ""))
 
-        for cog_f in os.listdir(self.c_dir):
+        for cog_f in os.listdir(os.path.join(self.c_dir, "cogs")):
             if cog_f.endswith(".py"):
                 if cog_f.replace(".py", "") not in loaded:
                     unloaded.append(cog_f.replace(".py", ""))

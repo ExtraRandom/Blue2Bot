@@ -55,7 +55,7 @@ class Main:
                         else:
                             Logger.write(IO.settings_fail_read)
 
-                        end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+                        end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
 
                         embed = discord.Embed(title="Chrono.gg Deal",
                                               colour=discord.Colour.dark_green(),

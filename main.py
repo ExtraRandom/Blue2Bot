@@ -9,7 +9,7 @@ from cogs.utils.logger import Logger
 
 
 def get_prefix(d_bot, message):
-    prefixes = ["?"]
+    prefixes = ["?", "="]
 
     if message.channel.is_private:
         return '?'

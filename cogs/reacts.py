@@ -6,11 +6,9 @@ from cogs.utils import perms, IO
 from cogs.utils.logger import Logger
 
 
-class General:
+class Reacts:
     def __init__(self, bot):
         self.bot = bot
-
-    # TODO add edit react command
 
     @commands.group(pass_context=True)
     async def react(self, ctx):
@@ -119,14 +117,12 @@ class General:
         e_word = None
 
         if len(ctx.message.mentions) > 0:
-            # print("mentions m8")
             mentioned = ctx.message.mentions[0]
             if mentioned.bot is False:
                 e_user = "{0.name}#{0.discriminator}".format(mentioned)
             else:
                 await self.bot.say("This command can not be used on bots.")
                 return
-            # print(e_user)
         else:
             # No react given so ask for one instead
             await self.bot.say("Please mention the user you would like to remove a react from")
@@ -157,7 +153,6 @@ class General:
         data = read_in_file()
 
         result = discord.Embed(title="{}'s Reacts".format(e_user),
-
                                colour=discord.Colour.red())
 
         word_list = []
@@ -193,13 +188,10 @@ class General:
             await self.bot.say("No Reply... :(")
             return
 
-        # print(e_user, ": ", e_word)
-
         data = read_in_file()
 
         if e_user in data:
             for i in range(len(data[e_user])):
-                # print(data[e_user][i]['word'])
                 if e_word in data[e_user][i]['word']:
                     del data[e_user][i]
                     with open("configs/custom_reacts.json", "w") as f:
@@ -272,7 +264,7 @@ def add_to_file(user, word, emoji):
             "word": "{}".format(word.lower()), "emoji": "{}".format(emoji)
             }
 
-    if write_file(data) == True:
+    if write_file(data) is True:
         return True
     else:
         return False
@@ -287,7 +279,6 @@ def read_in_file():
 
 
 def write_file(data):
-
     written = IO.write_custom_reacts(data)
     if written is False:
         Logger.write("{} - Failed to write to custom reacts json file".format(Logger.time_now()))
@@ -296,7 +287,7 @@ def write_file(data):
 
 
 def setup(bot):
-    bot.add_cog(General(bot))
+    bot.add_cog(Reacts(bot))
 
 
 

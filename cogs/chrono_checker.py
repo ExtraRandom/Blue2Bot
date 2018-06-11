@@ -17,7 +17,7 @@ class Main:
             if lds is None:
                 self.last_date_sent = datetime(2000, 1, 1)
             else:
-                self.last_date_sent = datetime.strptime(lds, "%Y-%m-%d %H:%M:%S.%f")
+                self.last_date_sent = datetime.strptime(lds, "%Y-%m-%d %H:%M:%S")
         else:
             self.last_date_sent = datetime(2000, 1, 1)
 
@@ -55,7 +55,7 @@ class Main:
                         else:
                             Logger.write(IO.settings_fail_read)
 
-                        end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
+                        end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
 
                         embed = discord.Embed(title="Chrono.gg Deal",
                                               colour=discord.Colour.dark_green(),

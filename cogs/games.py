@@ -14,8 +14,6 @@ class Games:
         """Search for games on steam"""
         msg = await self.bot.say("Retrieving data... please wait!")
 
-        prefixes = self.bot.command_prefix(self.bot, ctx.message)
-
         term = simplify.remove_prefix_in_message(self.bot, ctx.message, "steam")
         if term is None:
             await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
@@ -61,14 +59,11 @@ class Games:
     @commands.command(pass_context=True)
     async def itad(self, ctx):
         """Search for games on ITAD.com using Steam App ID's"""
-        replace_str = "{}itad ".format(self.bot.command_prefix)
-        term = str(ctx.message.content).strip().replace(replace_str, "")
-
         msg = await self.bot.say("Retrieving data... please wait!")
 
         term = simplify.remove_prefix_in_message(self.bot, ctx.message, "itad")
         if term is None:
-            await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
+            await self.bot.edit_message(msg, "Please provide a search term for the ITAD Command")
             return
 
         results = Steam.search_by_name(Steam.format_search(term))

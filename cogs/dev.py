@@ -93,7 +93,7 @@ class Dev:
         await self.bot.say(embed=cl)
 
     @commands.command(hidden=True)
-    @perms.is_server_owners()
+    @perms.is_server_owner()
     async def welcoming(self):
         """See whether the bot is currently welcoming newcomers"""
         data = IO.read_settings_as_json()

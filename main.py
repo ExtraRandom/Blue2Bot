@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 from datetime import datetime
-import asyncio
 import os
 from cogs.utils import perms, IO, simplify
 from cogs.utils.logger import Logger
@@ -13,17 +12,14 @@ def get_prefix(d_bot, message):
 
     if message.channel.is_private:
         return '?'
-
-    if message.channel.server.id == "442608736864043008":
-        return "="
     else:
         return commands.when_mentioned_or(*prefixes)(d_bot, message)
 
 
 bot = commands.Bot(command_prefix=get_prefix,
                    description="Bot Developed by @Extra_Random#2564\n"
-                               "Source code: https://github.com/ExtraRandom/StellarBot\n"
-                               "Report an Issue: https://github.com/ExtraRandom/StellarBot/issues/new",
+                               "Source code: https://github.com/ExtraRandom/Blue2Bot\n"
+                               "Report an Issue: https://github.com/ExtraRandom/Blue2Bot/issues/new",
                    pm_help=False)
 
 
@@ -64,16 +60,17 @@ async def on_message(message):
                                "https://media1.tenor.com/images/43fa142652563cb2035049e95ae639b6/"
                                "tenor.gif?itemid=10002272")
 
-    # await custom_processing.process_custom(message)
-
     await bot.process_commands(message)
 
-
+"""
 @bot.event
 async def on_member_join(member):
+
+    return
+
     s = bot.get_server("442608736864043008")
 
-    """Only welcome users on Stellar server"""
+    #Only welcome users on Stellar server
     if member.server.id is not s.id:
         return
 
@@ -153,6 +150,7 @@ async def on_member_join(member):
         await bot.send(c, "3 Minutes with no reply... Begone!")
         await bot.kick(member)
         return
+"""
 
 
 @bot.event
@@ -253,7 +251,7 @@ async def unload(*, cog: str):
 
 
 @bot.command(hidden=True)
-@perms.is_server_owners()
+@perms.is_server_owner()
 async def bot_welcome():
     """Toggle bot dealing with new people (MODS ONLY)
     Toggles whether bot handles newcomers when mods are online

@@ -2,21 +2,11 @@ from discord.ext import commands
 import discord
 
 
-def is_server_owners():
-    def predicate(ctx):
-        if ctx.message.author.id == "438678163229507584" or ctx.message.author.id == "92562410493202432":
-            return True
-
-    return commands.check(predicate)
-
-
-"""
 def is_server_owner():
     def predicate(ctx):
         return ctx.message.author.id == ctx.message.channel.server.owner
 
     return commands.check(predicate)
-"""
 
 
 def is_dev():

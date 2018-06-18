@@ -17,7 +17,7 @@ class Reacts:
             await self.bot.say("Use '=help react' to see subcommands")
 
     @react.command(pass_context=True)
-    @perms.is_server_owners()
+    @perms.is_server_owner()
     async def add(self, ctx):
         """For adding custom reacts for people (MOD ONLY)"""
         # http://discordpy.readthedocs.io/en/latest/api.html#discord.Client.wait_for_reaction
@@ -110,7 +110,7 @@ class Reacts:
             return
 
     @react.command(pass_context=True)
-    @perms.is_server_owners()
+    @perms.is_server_owner()
     async def remove(self, ctx):
         """For removing a custom react from a user (MOD ONLY)"""
         e_user = None
@@ -201,7 +201,7 @@ class Reacts:
                         return
 
     @react.command()
-    @perms.is_server_owners()
+    @perms.is_server_owner()
     async def list(self):
         """List the available reaction options"""
         r_msg = await self.bot.say("Reaction Options: ")
@@ -214,7 +214,7 @@ class Reacts:
                 return
 
     @react.command(pass_context=True)
-    @perms.is_server_owners()
+    @perms.is_server_owner()
     async def view(self, ctx):  # user: str, *, ctx):
         """View all of a user's reacts (MOD ONLY)
         Mention a user to see their reacts.

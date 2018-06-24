@@ -92,6 +92,17 @@ class Dev:
 
         await self.bot.say(embed=cl)
 
+    @commands.command()
+    @perms.is_dev()
+    async def chrono(self):
+        data = IO.read_settings_as_json()
+        if data is None:
+            await self.bot.say(IO.settings_fail_read)
+            return
+
+        lc = data['info']['chrono-true-last-check']
+        await self.bot.say("Last Check: {}".format(lc))
+
     @commands.command(hidden=True)
     @perms.is_server_owner()
     async def welcoming(self):
@@ -113,7 +124,7 @@ class Dev:
     @commands.command(hidden=True, pass_context=True)
     @perms.is_dev()
     async def test(self, ctx):
-        command = "react"
+        command = "itad"
         c_obj = self.bot.get_command(command)
 
         print(dir(c_obj))
@@ -122,11 +133,6 @@ class Dev:
         print("d", c_obj.description)
         print("c", c_obj.commands)
         print("cd", c_obj.command)
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def err(self):
-        print(10/0)
 
 
 def setup(bot):

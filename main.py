@@ -52,105 +52,12 @@ async def on_message(message):
     if bot_msg is True:
         return
 
-    if not message.channel.is_private:
-        await custom_reaction(message)
-
     if message.content == "are you sure about that":
         await bot.send_message(message.channel,
                                "https://media1.tenor.com/images/43fa142652563cb2035049e95ae639b6/"
                                "tenor.gif?itemid=10002272")
 
     await bot.process_commands(message)
-
-"""
-@bot.event
-async def on_member_join(member):
-
-    return
-
-    s = bot.get_server("442608736864043008")
-
-    #Only welcome users on Stellar server
-    if member.server.id is not s.id:
-        return
-
-    c = s.get_channel("449352501393621012")
-    r = s.roles
-
-    def get_member_from_id(the_id):
-        return s.get_member(the_id)
-
-    def get_role_from_id(the_id):
-        for role in r:
-            if role.id == the_id:
-                return role
-
-    m_role = get_role_from_id("448402174985240576")
-    o_role = get_role_from_id("449194917411946496")
-
-    skiz = get_member_from_id("438678163229507584")
-    extr = get_member_from_id("92562410493202432")
-
-    data = IO.read_settings_as_json()
-    if data is None:
-        await bot.send_message(c, "Warning: Failed to read settings to check whether to handle welcoming newcomers.\n"
-                                  "Will not handle until this issue is fixed.")
-        return
-
-    if data['handle-newcomers'] is False:
-        # If False then bot will only handle newcomers when Mod's are offline
-        if skiz.status == discord.Status.offline and extr.status == discord.Status.offline:
-            pass
-        else:
-            # print("Mod's online")
-            return
-    else:
-        # If true then bot will handle newcomers no matter what
-        pass
-
-    await bot.send_message(c, "Hello there {}. Please take a moment to read the rules!".format(member.mention))
-
-    await asyncio.sleep(10)
-
-    r_msg = await bot.send_message(c, "Once you have read the rules, react with the tick if you agree or "
-                                      "the cross if you do not agree. Thanks!")
-
-    await bot.add_reaction(r_msg, get(bot.get_all_emojis(), name="SBE_yes"))
-    await bot.add_reaction(r_msg, get(bot.get_all_emojis(), name="SBE_no"))
-
-    def check(reaction, user):
-
-        e_list = ["SBE_yes", "SBE_no"]
-        e = reaction.emoji
-
-        if e.name in e_list:
-            return True
-        else:
-            return False
-
-    r_res = await bot.wait_for_reaction(message=r_msg,
-                                        timeout=180,
-                                        user=member,
-                                        check=check)
-
-    if r_res is not None:
-        if r_res.reaction.emoji.name == "SBE_yes":
-            # user accepts
-            await bot.send_message(c, "Thanks for accepting! Setting up your roles now!")
-            await bot.add_roles(member, m_role)
-            await bot.remove_roles(member, o_role)
-            return
-        else:
-            # user doesn't accept
-            await bot.send_message(c, "Ok then... Byeeeee")
-            await bot.kick(member)
-            return
-    else:
-        # user didn't reply within 3 minutes
-        await bot.send(c, "3 Minutes with no reply... Begone!")
-        await bot.kick(member)
-        return
-"""
 
 
 @bot.event
@@ -251,94 +158,11 @@ async def unload(*, cog: str):
 
 
 @bot.command(hidden=True)
-@perms.is_server_owner()
-async def bot_welcome():
-    """Toggle bot dealing with new people (MODS ONLY)
-    Toggles whether bot handles newcomers when mods are online
-    Bot will still handle newcomers when no mods are online despite whether this is set or not"""
-
-    data = IO.read_settings_as_json()
-    if data is None:
-        await bot.say(IO.settings_fail_read)
-        return
-
-    current = bool(data['handle-newcomers'])
-
-    new = not current
-    data['handle-newcomers'] = new
-
-    if IO.write_settings(data) is False:
-        await bot.say(IO.settings_fail_write)
-        return
-
-    if current is True:
-        await bot.say("Turning off bot welcome handling, will still handle newcomers if no mods are online")
-    else:
-        await bot.say("Turning on bot welcome handling")
-
-
-async def custom_reaction(message):
-    server = message.channel.server.id
-    msg = str(message.content).lower()
-    user = "{}#{}".format(message.author.name, message.author.discriminator)
-
-    if msg.startswith("="):
-        return False
-
-    data = IO.read_custom_reacts_as_json()
-    if data is None:
-        Logger.write_and_print(IO.react_fail_read)
-        return False
-
-    try:
-        test = data[user]
-    except KeyError as ex:
-        return False
-
-    setting_data = IO.read_settings_as_json()
-    if setting_data is None:
-        Logger.write_and_print(IO.settings_fail_read)
-        return False
-
-    if str(server) not in setting_data['react']['react-servers']:
-        return False
-
-    try:
-        for i in range(len(data[user])):
-            try:
-                word = data[user][i]['word']
-            except KeyError:
-                print("Key Error")
-                return False
-
-            if word in msg:
-                emoji = get(bot.get_all_emojis(), name=data[user][i]['emoji'])
-                if emoji is None:
-                    await bot.send_message(message.channel, "Emoji '{}' doesn't exist!".format(data[user][i]['emoji']))
-                    return
-
-                if msg.startswith(word.lower()):
-                    pass
-                elif " {} ".format(word.lower()) in msg:
-                    pass
-                elif "{} ".format(word.lower()) in msg:
-                    pass
-                elif " {}".format(word.lower()) in msg:
-                    pass
-                else:
-                    return
-                await react(message, emoji)
-
-    except Exception as e:
-        Logger.write(e)
-
-
-async def react(msg, emoji):
-    try:
-        await bot.add_reaction(msg, emoji)
-    except Exception as ex:
-        Logger.write(ex)
-        return
+@perms.is_dev()
+async def shutdown():
+    """Should be pretty obvious what this does"""
+    await bot.say("Shutting down...")
+    await bot.logout()
 
 
 def get_cogs_in_folder():
@@ -373,12 +197,10 @@ if __name__ == '__main__':
         s_data['keys']['token'] = None
         s_data['keys']['itad-api-key'] = None
         s_data['cogs'] = {}
-        s_data['react'] = {}
-        s_data['react']['handle-newcomers'] = False
-        s_data['react']['react-servers'] = []
         s_data['info'] = {}
         s_data['info']['last-login-time'] = None
         s_data['info']['chrono-last-check'] = None
+        s_data['info']['chrono-true-last-check'] = None
     else:
         s_data = IO.read_settings_as_json()
         if s_data is None:

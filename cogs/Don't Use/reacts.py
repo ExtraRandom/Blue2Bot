@@ -6,6 +6,14 @@ from cogs.utils import perms, IO
 from cogs.utils.logger import Logger
 
 
+"""
+This cog is no longer used by me but I have kept in the project as it features some code I might
+need/want to look back at in the future to figure other stuff out
+
+It's also fairly badly done in places (i.e. the way it gets the emoji's it should use)
+"""
+
+
 class Reacts:
     def __init__(self, bot):
         self.bot = bot

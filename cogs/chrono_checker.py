@@ -40,7 +40,7 @@ class Main:
         while True:
             today = datetime.utcnow()
 
-            if today.hour >= 16 and today.minute >= 20:
+            if (today.hour > 17) or (today.hour >= 16 and today.minute >= 20):
                 if self.last_date_sent != datetime(today.year, today.month, today.day, 10, 00, 00, 00):
                     name, discount, sale_price, normal_price, image, start_date, end_date, \
                         steam_link = await fetch_chrono_data()
@@ -48,6 +48,7 @@ class Main:
                     if name != "Error":
                         self.last_date_sent = datetime(today.year, today.month, today.day, 10, 00, 00, 00)
                         data = IO.read_settings_as_json()
+                        data['info']['chrono-true-last-check'] = str(today)
                         if data is not None:
                             data['info']['chrono-last-check'] = str(self.last_date_sent)
                             if IO.write_settings(data) is False:

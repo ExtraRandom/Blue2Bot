@@ -24,11 +24,3 @@ def remove_prefix_no_command(bot, message):
             result = str(message.content).strip().replace(replace_str, "")
 
     return result
-
-
-
-
-
-
-
-

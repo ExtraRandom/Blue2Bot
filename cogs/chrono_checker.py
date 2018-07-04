@@ -6,6 +6,11 @@ from datetime import datetime
 from cogs.utils import IO
 from cogs.utils.logger import Logger
 
+"""
+This cog will post the latest chrono.gg deal into the "deals" channel.
+Therefore to benefit from this you'll need a "deals" channel on your server.
+"""
+
 
 class Main:
     def __init__(self, bot):

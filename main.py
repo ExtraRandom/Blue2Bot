@@ -1,6 +1,5 @@
 import discord
-from discord.ext import commands
-from discord.utils import get
+from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
 import os
 from cogs.utils import perms, IO, simplify

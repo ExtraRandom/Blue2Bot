@@ -131,7 +131,7 @@ class Games:
                 await self.bot.say("Please provide a search term for the ps4 command")
                 return
 
-            s_url = Playstation.format_url(["games", "bundles"],  # ,"addons"],
+            s_url = Playstation.format_url(["games", "bundles"],
                                            ["ps4"],
                                            term)
 
@@ -142,22 +142,49 @@ class Games:
                                     description="Search results from Playstation Store UK")
 
             for game in search_data:
-                # p_url = "https://store.playstation.com{}".format(game['id'])
-                # page_data = Playstation.get_page_data(p_url)
-
                 results.add_field(name="{}\n".format(game['title']),
                                   value="Price: {}\n"
                                         "Link: {}\n"
                                         "".format(game['price'], (url_base + game['id'])))
-                                        # "\n"
-                                        # "Genre: {}\n"
-                                        # "File Size: {}\n"
-                                        # "".format(game['price'], page_data['genre'], page_data['filesize']))
 
             await self.bot.edit_message(msg, embed=results)
         except Exception as e:
             Logger.write(e)
             await self.bot.edit_message(msg, "PS4 Game Search Failed")
+
+    @commands.command(pass_context=True)
+    async def ps3(self, ctx):
+        """Search for PS3 games on the UK Playstation Store"""
+        msg = await self.bot.say(self.fetching)
+
+        try:
+            term = simplify.remove_prefix_in_message(self.bot, ctx.message, "ps3")
+            url_base = "https://store.playstation.com"
+
+            if term is None:
+                await self.bot.say("Please provide a search term for the ps3 command")
+                return
+
+            s_url = Playstation.format_url(["games", "bundles"],
+                                           ["ps3"],
+                                           term)
+
+            search_data = Playstation.get_data(s_url)
+
+            results = discord.Embed(title="PS3 PSN Search for '{}'".format(term),
+                                    colour=discord.Colour.dark_blue(),
+                                    description="Search results from Playstation Store UK")
+
+            for game in search_data:
+                results.add_field(name="{}\n".format(game['title']),
+                                  value="Price: {}\n"
+                                        "Link: {}\n"
+                                        "".format(game['price'], (url_base + game['id'])))
+
+            await self.bot.edit_message(msg, embed=results)
+        except Exception as e:
+            Logger.write(e)
+            await self.bot.edit_message(msg, "PS3 Game Search Failed")
 
 
 def setup(bot):

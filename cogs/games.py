@@ -2,17 +2,20 @@ import discord
 from discord.ext import commands
 from GameStoresAPI.Steam.steam import Steam
 from GameStoresAPI.ITAD.itad import Itad
-from cogs.utils import IO, simplify
+from GameStoresAPI.Playstation.playstation import Playstation
+from cogs.utils import IO, simplify  # , csgo
+from cogs.utils.logger import Logger
 
 
 class Games:
     def __init__(self, bot):
         self.bot = bot
+        self.fetching = "Retrieving data... please wait!"
 
     @commands.command(name="steam", pass_context=True)
     async def steam_search(self, ctx):
         """Search for games on steam"""
-        msg = await self.bot.say("Retrieving data... please wait!")
+        msg = await self.bot.say(self.fetching)
 
         term = simplify.remove_prefix_in_message(self.bot, ctx.message, "steam")
         if term is None:
@@ -59,7 +62,7 @@ class Games:
     @commands.command(pass_context=True)
     async def itad(self, ctx):
         """Search for games on ITAD.com using Steam App ID's"""
-        msg = await self.bot.say("Retrieving data... please wait!")
+        msg = await self.bot.say(self.fetching)
 
         term = simplify.remove_prefix_in_message(self.bot, ctx.message, "itad")
         if term is None:
@@ -115,11 +118,49 @@ class Games:
 
         await self.bot.edit_message(msg, embed=embed)
 
+    @commands.command(pass_context=True)
+    async def ps4(self, ctx):
+        """Search for PS4 games on the UK Playstation Store"""
+        msg = await self.bot.say(self.fetching)
+
+        try:
+            term = simplify.remove_prefix_in_message(self.bot, ctx.message, "ps4")
+            url_base = "https://store.playstation.com"
+
+            if term is None:
+                await self.bot.say("Please provide a search term for the ps4 command")
+                return
+
+            s_url = Playstation.format_url(["games", "bundles"],  # ,"addons"],
+                                           ["ps4"],
+                                           term)
+
+            search_data = Playstation.get_data(s_url)
+
+            results = discord.Embed(title="PS4 PSN Search for '{}'".format(term),
+                                    colour=discord.Colour.dark_blue(),
+                                    description="Search results from Playstation Store UK")
+
+            for game in search_data:
+                # p_url = "https://store.playstation.com{}".format(game['id'])
+                # page_data = Playstation.get_page_data(p_url)
+
+                results.add_field(name="{}\n".format(game['title']),
+                                  value="Price: {}\n"
+                                        "Link: {}\n"
+                                        "".format(game['price'], (url_base + game['id'])))
+                                        # "\n"
+                                        # "Genre: {}\n"
+                                        # "File Size: {}\n"
+                                        # "".format(game['price'], page_data['genre'], page_data['filesize']))
+
+            await self.bot.edit_message(msg, embed=results)
+        except Exception as e:
+            Logger.write(e)
+            await self.bot.edit_message(msg, "PS4 Game Search Failed")
+
 
 def setup(bot):
     bot.add_cog(Games(bot))
-
-
-
 
 

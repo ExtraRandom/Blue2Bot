@@ -8,7 +8,8 @@ import os
 class Dev:
     def __init__(self, bot):
         self.bot = bot
-        self.c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        self.c_dir = self.bot.base_directory
+        # self.c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -133,6 +134,12 @@ class Dev:
         print("d", c_obj.description)
         print("c", c_obj.commands)
         print("cd", c_obj.command)
+
+    @commands.command()
+    async def err(self):
+        # print(10 / 0)
+        open(self.bot.base_directory)
+
 
 
 def setup(bot):

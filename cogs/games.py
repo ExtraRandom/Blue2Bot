@@ -5,6 +5,7 @@ from GameStoresAPI.ITAD.itad import Itad
 from GameStoresAPI.Playstation.playstation import Playstation
 from cogs.utils import IO, simplify  # , csgo
 from cogs.utils.logger import Logger
+from datetime import datetime, timedelta
 
 
 class Games:
@@ -185,6 +186,43 @@ class Games:
         except Exception as e:
             Logger.write(e)
             await self.bot.edit_message(msg, "PS3 Game Search Failed")
+
+    @commands.command(aliases=["76", "fallout", "f76", "fo76"])
+    async def fallout76(self):
+        """Fallout 76 Countdown"""
+        rd = datetime(year=2018, month=11, day=14, hour=0, minute=0, second=0, microsecond=0)
+        # rd = datetime(year=2018, month=7, day=6, hour=2, minute=16, second=0, microsecond=0)  # testing
+        now = datetime.now()
+        td = timedelta.total_seconds(rd - now)
+
+        m, s = divmod(td, 60)
+        h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+
+        cd_str = ("%d:%02d:%02d:%02d" % (d, h, m, s))
+        day, hour, minute, second = cd_str.split(":")
+
+        if int(day) <= -1:
+            await self.bot.say("Fallout 76 is out now!")
+            return
+        elif int(day) == 0:
+            if int(hour) >= 1:
+                await self.bot.say("It's so close! Fallout 76 releases in {} hours, {} minutes and {} seconds"
+                                   "".format(hour, minute, second))
+                return
+            else:  # hour is 0
+                if int(minute) >= 1:
+                    await self.bot.say("Only {} minutes and {} seconds until Fallout 76 is released!"
+                                       "".format(minute, second))
+                    return
+                else:
+                    await self.bot.say("Wew lad, only {} seconds until Fallout 76 is upon us."
+                                       "".format(second))
+                    return
+        else:
+            await self.bot.say("Fallout 76 is {} days, {} hours, {} minutes and {} seconds away from release."
+                               "".format(day, hour, minute, second))
+            return
 
 
 def setup(bot):

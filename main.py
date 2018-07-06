@@ -104,7 +104,6 @@ class BlueBot(commands.Bot):
         return c_list
 
     def run(self):
-        # if __name__ == '__main__':
         first_time = False
         s_data = {}
         should_write_after_finish = False
@@ -132,7 +131,7 @@ class BlueBot(commands.Bot):
             cog_path = "cogs.{}".format(folder_cog)
             if first_time is True:
                 s_data['cogs'][folder_cog] = True
-                should_load = True
+                should_write_after_finish = True
             else:
                 try:
                     should_load = s_data['cogs'][folder_cog]
@@ -163,7 +162,7 @@ class BlueBot(commands.Bot):
         f_cogs = self.get_cogs_in_settings()
         for f_cog in f_cogs:
             if f_cog not in r_cogs:
-                print("Cog {} no longer exists, removing settings entry".format(f_cog))
+                print("Cog '{}' no longer exists, removing settings entry".format(f_cog))
                 del s_data['cogs'][f_cog]
                 should_write_after_finish = True
 

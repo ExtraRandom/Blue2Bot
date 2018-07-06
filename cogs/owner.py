@@ -80,6 +80,27 @@ class Owner:
         await self.bot.say("Shutting down...")
         await self.bot.logout()
 
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def cogs(self):
+        ext_list = self.bot.extensions
+        loaded = []
+        unloaded = []
+        for cog in ext_list:
+            loaded.append(str(cog).replace("cogs.", ""))
+
+        for cog_f in os.listdir(os.path.join(self.bot.base_directory, "cogs")):
+            if cog_f.endswith(".py"):
+                if cog_f.replace(".py", "") not in loaded:
+                    unloaded.append(cog_f.replace(".py", ""))
+
+        await self.bot.say("```diff\n"
+                           "+ Loaded Cogs:\n{}\n\n"
+                           "- Unloaded Cogs:\n{}"
+                           "```"
+                           "".format(", ".join(sorted(loaded)),
+                                     ", ".join(sorted(unloaded))))
+
 
 def setup(bot):
     bot.add_cog(Owner(bot))

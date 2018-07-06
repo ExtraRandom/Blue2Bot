@@ -8,29 +8,7 @@ import os
 class Dev:
     def __init__(self, bot):
         self.bot = bot
-        self.c_dir = self.bot.base_directory
-        # self.c_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def cogs(self):
-        ext_list = self.bot.extensions
-        loaded = []
-        unloaded = []
-        for cog in ext_list:
-            loaded.append(str(cog).replace("cogs.", ""))
-
-        for cog_f in os.listdir(os.path.join(self.c_dir, "cogs")):
-            if cog_f.endswith(".py"):
-                if cog_f.replace(".py", "") not in loaded:
-                    unloaded.append(cog_f.replace(".py", ""))
-
-        await self.bot.say("```diff\n"
-                           "+ Loaded Cogs:\n{}\n\n"
-                           "- Unloaded Cogs:\n{}"
-                           "```"
-                           "".format(", ".join(sorted(loaded)),
-                                     ", ".join(sorted(unloaded))))
+        self.c_dir = self.bot.base_directory  # os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -71,7 +49,7 @@ class Dev:
     @commands.command()
     async def github(self):
         """Provide link to the bot's source code"""
-        await self.bot.say("https://github.com/ExtraRandom/StellarBot")
+        await self.bot.say("https://github.com/ExtraRandom/Blue2Bot")
 
     @commands.command(aliases=["version", "update"])
     async def changelog(self):
@@ -81,15 +59,18 @@ class Dev:
             return
 
         result = os.popen('cd {} &&'
-                          'git show -s -n 1 HEAD --format="%cr|%s|%H"'.format(self.c_dir)).read()
+                          'git show -s -n 3 HEAD --format="%cr|%s|%H"'.format(self.c_dir)).read()
 
-        time_ago, changed, commit = result.split("|")
+        cl = discord.Embed(title="Bot Changelog")  # , description="Last Updated: {}".format(time_ago))
+        # time_ago, changed, commit = result.split("|")
 
-        cl = discord.Embed(title="Bot Changelog",
-                           description="Last Updated: {}".format(time_ago))
+        lines = result.split("\n")
 
-        cl.add_field(name="Changes: ",
-                     value="{}".format(changed.replace(" [", "\n[")))
+        for line in lines:
+            if line is not "":
+                time_ago, changed, c_hash = str(line).split("|")
+                cl.add_field(name="Changes commited {}".format(time_ago),
+                             value="{}\n".format(changed.replace(" [", "\n[")))
 
         await self.bot.say(embed=cl)
 
@@ -104,24 +85,6 @@ class Dev:
         lc = data['info']['chrono-true-last-check']
         await self.bot.say("Last Check: {}".format(lc))
 
-    @commands.command(hidden=True)
-    @perms.is_server_owner()
-    async def welcoming(self):
-        """See whether the bot is currently welcoming newcomers"""
-        data = IO.read_settings_as_json()
-        if data is None:
-            await self.bot.say(IO.settings_fail_read)
-            return
-
-        current = bool(data['handle-newcomers'])
-        if current is True:
-            await self.bot.say("Bot is currently handling newcomers even if mods are online.")
-            return
-        else:
-            await self.bot.say("Bot isn't handling newcomers whilst mods are online, "
-                               "will still handle newcomers if all mods go offline")
-            return
-
     @commands.command(hidden=True, pass_context=True)
     @perms.is_dev()
     async def test(self, ctx):
@@ -135,11 +98,10 @@ class Dev:
         print("c", c_obj.commands)
         print("cd", c_obj.command)
 
-    @commands.command()
-    async def err(self):
-        # print(10 / 0)
-        open(self.bot.base_directory)
-
+    # @commands.command()
+    # async def err(self):
+    #    print(10 / 0)
+    #    open(self.bot.base_directory)
 
 
 def setup(bot):

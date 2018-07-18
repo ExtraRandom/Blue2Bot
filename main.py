@@ -52,7 +52,8 @@ class BlueBot(commands.Bot):
             return
 
         if message.content == "are you sure about that":
-            await self.send_file(message.channel, 'pictures/memes/aysat.gif')
+            img = self.base_directory + '/pictures/memes/aysat.gif'
+            await self.send_file(message.channel, img)
 
         await self.process_commands(message)
 
@@ -173,7 +174,6 @@ class BlueBot(commands.Bot):
 
         if token:
             super().run(token)
-            # self.bot.run(token)
         else:
             print("Token is not set! Go to {} and change the token parameter!".format(IO.settings_file_path))
 

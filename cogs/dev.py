@@ -8,19 +8,6 @@ import os
 class Dev:
     def __init__(self, bot):
         self.bot = bot
-        self.c_dir = self.bot.base_directory  # os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def avatar(self, image: str):
-        """Change the bot's avatar (DEV ONLY)"""
-        try:
-            with open(os.path.join(self.c_dir, image), "rb") as avatar:
-                f = avatar.read()
-                image_bytes = bytearray(f)
-                await self.bot.edit_profile(avatar=image_bytes)
-        except Exception as e:
-            await self.bot.say("Failed to change avatar")
 
     @commands.command()
     async def uptime(self):
@@ -48,21 +35,20 @@ class Dev:
 
     @commands.command()
     async def github(self):
-        """Provide link to the bot's source code"""
+        """Link to the bot's source code"""
         await self.bot.say("https://github.com/ExtraRandom/Blue2Bot")
 
     @commands.command(aliases=["version", "update"])
     async def changelog(self):
-        """See what was changed in the last update"""
-        if not os.path.isdir(os.path.join(self.c_dir, ".git")):
+        """See what was changed in the last few updates"""
+        if not os.path.isdir(os.path.join(self.bot.base_directory, ".git")):
             await self.bot.say("Bot wasn't installed with Git")
             return
 
         result = os.popen('cd {} &&'
-                          'git show -s -n 3 HEAD --format="%cr|%s|%H"'.format(self.c_dir)).read()
+                          'git show -s -n 3 HEAD --format="%cr|%s|%H"'.format(self.bot.base_directory)).read()
 
-        cl = discord.Embed(title="Bot Changelog")  # , description="Last Updated: {}".format(time_ago))
-        # time_ago, changed, commit = result.split("|")
+        cl = discord.Embed(title="Bot Changelog")
 
         lines = result.split("\n")
 
@@ -74,9 +60,10 @@ class Dev:
 
         await self.bot.say(embed=cl)
 
-    @commands.command()
+    @commands.command(hidden=True)
     @perms.is_dev()
     async def chrono(self):
+        """Check when chrono check last occurred"""
         data = IO.read_settings_as_json()
         if data is None:
             await self.bot.say(IO.settings_fail_read)

@@ -191,7 +191,6 @@ class Games:
     async def fallout76(self):
         """Fallout 76 Countdown"""
         rd = datetime(year=2018, month=11, day=14, hour=0, minute=0, second=0, microsecond=0)
-        # rd = datetime(year=2018, month=7, day=6, hour=2, minute=16, second=0, microsecond=0)  # testing
         now = datetime.now()
         td = timedelta.total_seconds(rd - now)
 

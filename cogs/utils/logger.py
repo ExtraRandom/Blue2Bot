@@ -34,19 +34,12 @@ class Logger:
 
     @staticmethod
     def get_filename():
-        data = IO.read_settings_as_json()
-        if data is None:
-            return None
-
-        # r_time = data['info']['last-login-time']
-        # time = str(r_time).split(".")[0].replace(":", "-")
-
         file_name = "Log {}.txt".format(Logger.date_now())
         file_path = os.path.join(Logger.get_cwd(), "logs", file_name)
 
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:
-                f.write("")  # Log Started\n")
+                f.write("")
 
         return file_name
 

@@ -75,14 +75,15 @@ class Owner:
     @commands.command(hidden=True)
     @perms.is_dev()
     async def shutdown(self):
-        """Should be pretty obvious what this does"""
-        print("shutdown")
+        """Shutdown the bot"""
+        print("Shutting Down")
         await self.bot.say("Shutting down...")
         await self.bot.logout()
 
     @commands.command(hidden=True)
     @perms.is_dev()
     async def cogs(self):
+        """List loaded and unloaded cogs"""
         ext_list = self.bot.extensions
         loaded = []
         unloaded = []
@@ -100,6 +101,18 @@ class Owner:
                            "```"
                            "".format(", ".join(sorted(loaded)),
                                      ", ".join(sorted(unloaded))))
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def avatar(self, image: str):
+        """Change the bot's avatar (DEV ONLY)"""
+        try:
+            with open(os.path.join(self.bot.base_directory, image), "rb") as avatar:
+                f = avatar.read()
+                image_bytes = bytearray(f)
+                await self.bot.edit_profile(avatar=image_bytes)
+        except Exception as e:
+            await self.bot.say("Failed to change avatar")
 
 
 def setup(bot):

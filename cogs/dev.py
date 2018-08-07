@@ -55,7 +55,7 @@ class Dev:
         for line in lines:
             if line is not "":
                 time_ago, changed, c_hash = str(line).split("|")
-                cl.add_field(name="Changes commited {}".format(time_ago),
+                cl.add_field(name="Changes committed {}".format(time_ago),
                              value="{}\n".format(changed.replace(" [", "\n[")))
 
         await self.bot.say(embed=cl)

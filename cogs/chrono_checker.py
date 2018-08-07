@@ -3,8 +3,9 @@ import json
 import requests
 import discord
 from datetime import datetime
-from cogs.utils import IO
+from cogs.utils import IO, simplify
 from cogs.utils.logger import Logger
+from GameStoresAPI.ITAD.itad import Itad
 
 """
 This cog will post the latest chrono.gg deal into the "deals" channel.
@@ -16,8 +17,10 @@ class Main:
     def __init__(self, bot):
         self.bot = bot
         self.bg_task = self.bot.loop.create_task(self.chorno_gg())
+
         data = IO.read_settings_as_json()
         if data is not None:
+            self.api_key = data["keys"]["itad-api-key"]
             lds = data['info']['chrono-last-check']
             if lds is None:
                 self.last_date_sent = datetime(2000, 1, 1)
@@ -25,6 +28,7 @@ class Main:
                 self.last_date_sent = datetime.strptime(lds, "%Y-%m-%d %H:%M:%S")
         else:
             self.last_date_sent = datetime(2000, 1, 1)
+            self.api_key = None
 
     async def chorno_gg(self):
         def get_id_from_channel_name(bot, c_name):
@@ -66,15 +70,33 @@ class Main:
                         embed = discord.Embed(title="Chrono.gg Deal",
                                               colour=discord.Colour.dark_green(),
                                               description="Deal Ends at {} UTC".format(end_time))
-
                         embed.set_thumbnail(url=image)
-                        embed.add_field(name="Game: {}".format(name),
-                                        value="Sale Price: ${} ~~${}~~\n"
-                                              "Discount: {}"
-                                              "".format(sale_price, normal_price, discount))
+
+                        converted_sale_price = simplify.convert_USD_to_GBP(float(sale_price))
+                        if converted_sale_price == -1:
+                            embed.add_field(name="Game: {}".format(name),
+                                            value="Sale Price: ${} ~~${}~~\n"
+                                                  "Discount: {}"
+                                                  "".format(sale_price, normal_price, discount))
+                        else:
+                            embed.add_field(name="Game: {}".format(name),
+                                            value="Sale Price: £{} \n"
+                                                  "Discount: {}"
+                                                  "".format(converted_sale_price, discount))
+
                         embed.add_field(name="Links",
                                         value="{}\n"
                                               "{}".format(store_link, steam_link))
+
+                        steam_url_split = str(steam_link).split("/")
+                        app_id = steam_url_split[3] + "/" + steam_url_split[4]
+
+                        price, shop = itad_check(self.api_key, app_id)
+                        if price != "Error":
+                            embed.add_field(name="Best Historical Price",
+                                            value="Price: £{}\n"
+                                                  "Shop: {}"
+                                                  "".format(price, shop))
 
                         for c_id in channel_ids:
                             await self.bot.send_message(c_id, embed=embed)
@@ -98,6 +120,17 @@ async def fetch_chrono_data():
             data["og_image"], data["start_date"], data["end_date"], data["steam_url"]
     else:
         return "Error", "2", "3", "4", "5", "6", "7", "8"
+
+
+def itad_check(api_key, app_id):
+    plain = Itad.get_plain_from_steam_appid(api_key, app_id)
+
+    hb_currency, hb_price, hb_shop = Itad.get_historical_best_price(api_key,
+                                                                    plain)
+
+    # print(hb_currency, hb_price, hb_shop)
+
+    return hb_price, hb_shop
 
 
 def setup(bot):

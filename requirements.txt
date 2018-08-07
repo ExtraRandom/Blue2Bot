@@ -1,2 +1,4 @@
 git+git://github.com/Rapptz/discord.py.git#egg=discord.py[voice]
 git+git://github.com/ExtraRandom/Game_Stores_API
+Pillow
+requests

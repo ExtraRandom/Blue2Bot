@@ -52,7 +52,7 @@ class BlueBot(commands.Bot):
             return
 
         if message.content == "are you sure about that":
-            img = self.base_directory + '/pictures/memes/aysat.gif'
+            img = os.path.join(self.base_directory, "pictures", "memes", "aysat.gif")
             await self.send_file(message.channel, img)
 
         await self.process_commands(message)
@@ -116,6 +116,7 @@ class BlueBot(commands.Bot):
             s_data['keys'] = {}
             s_data['keys']['token'] = None
             s_data['keys']['itad-api-key'] = None
+            s_data['keys']['fixer-io-key'] = None
             s_data['cogs'] = {}
             s_data['info'] = {}
             s_data['info']['last-login-time'] = None

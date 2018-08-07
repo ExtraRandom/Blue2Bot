@@ -45,9 +45,7 @@ class Games:
             steam_url = results[i]['store_url']
             steam_url_split = str(steam_url).split("/")
             steam_link = steam_url_split[0] + "//" + steam_url_split[1] + "/" + steam_url_split[2] \
-                        + "/" + steam_url_split[3] + "/" + steam_url_split[4]
-
-            # app_id = steam_url_split[3] + "/" + steam_url_split[4]
+                + "/" + steam_url_split[3] + "/" + steam_url_split[4]
 
             if results[i]['discount'] != "None":
                 price = "{}\nCurrent Discount: {}".format(price, results[i]['discount'])

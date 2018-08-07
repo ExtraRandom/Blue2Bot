@@ -1,3 +1,6 @@
+from cogs.utils import IO
+import requests
+import json
 
 def remove_prefix_in_message(bot, message, command_name):
     """Removes prefix and the command from the message string"""
@@ -24,3 +27,42 @@ def remove_prefix_no_command(bot, message):
             result = str(message.content).strip().replace(replace_str, "")
 
     return result
+
+
+def convert_USD_to_GBP(amount):
+    def get_page_data(page):
+        """Get the Raw Data (whether that be html or json) of the URL given"""
+        response = requests.request("GET", page)
+        if response.status_code == requests.codes.ok:
+            return response.text
+        else:
+            return "Error"
+
+    s_data = IO.read_settings_as_json()
+    if s_data is not None:
+        api_key = s_data["keys"]["fixer-io-key"]
+    else:
+        return -1
+
+    url = "http://data.fixer.io/api/latest?access_key={}&format=1&symbols=GBP,USD".format(api_key)
+
+    j_data = get_page_data(url)
+    if j_data == "Error":
+        return -1
+
+    data = json.loads(j_data)
+
+    EUR_GBP = float(data["rates"]["GBP"])
+    EUR_USD = float(data["rates"]["USD"])
+
+    amount_to_EUR = amount / EUR_USD
+    amount_to_GBP = amount_to_EUR * EUR_GBP
+
+    return round(amount_to_GBP, 2)
+
+
+
+
+
+
+

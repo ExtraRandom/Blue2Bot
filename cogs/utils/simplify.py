@@ -2,6 +2,7 @@ from cogs.utils import IO
 import requests
 import json
 
+
 def remove_prefix_in_message(bot, message, command_name):
     """Removes prefix and the command from the message string"""
     cmd = command_name
@@ -30,6 +31,8 @@ def remove_prefix_no_command(bot, message):
 
 
 def convert_USD_to_GBP(amount):
+    """For converting USD into EUR and then into GBP (due to limitation's of the API)
+    Used for the chrono command, shouldn't be used anywhere else"""
     def get_page_data(page):
         """Get the Raw Data (whether that be html or json) of the URL given"""
         response = requests.request("GET", page)
@@ -44,11 +47,14 @@ def convert_USD_to_GBP(amount):
     else:
         return -1
 
+    if api_key is None:
+        return -2
+
     url = "http://data.fixer.io/api/latest?access_key={}&format=1&symbols=GBP,USD".format(api_key)
 
     j_data = get_page_data(url)
     if j_data == "Error":
-        return -1
+        return -3
 
     data = json.loads(j_data)
 

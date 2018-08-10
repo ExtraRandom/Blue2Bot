@@ -104,28 +104,63 @@ class BlueBot(commands.Bot):
             c_list.append(cog)
         return c_list
 
+    @staticmethod
+    def ensure_all_fields(settings_data):
+        fields = \
+            {
+                "keys": {
+                    "token": None,
+                    "itad-api-key": None,
+                    "fixer-io-key": None
+                },
+                "cogs": {},
+                "info": {
+                    "last-login-time": None,
+                    "chrono-last-check": None,
+                    "chrono-true-last-check": None
+                }
+            }
+        sd_len = len(settings_data)
+        if sd_len == 0:
+            settings_data = fields
+            return settings_data
+        else:
+            for top_field in fields:
+                if top_field in settings_data:
+                    for inner_field in fields[top_field]:
+                        if inner_field not in settings_data[top_field]:
+                            settings_data[top_field][inner_field] = None
+                            Logger.write("Settings.json - Added inner field '{}' to category '{}'".format(inner_field,
+                                                                                                          top_field))
+                else:
+                    settings_data[top_field] = {}
+
+                    Logger.write("Settings.json - Added category '{}'".format(top_field))
+
+                    for inner_field in fields[top_field]:
+                        if inner_field not in settings_data[top_field]:
+                            settings_data[top_field][inner_field] = None
+                            Logger.write("Settings.json - Added inner field '{}' to category '{}'".format(inner_field,
+                                                                                                          top_field))
+
+            return settings_data
+
     def run(self):
         first_time = False
         s_data = {}
-        should_write_after_finish = False
+        # should_write_after_finish = False
 
         """First time run check"""
         if os.path.isfile(IO.settings_file_path) is False:
-            print("First Time Run - Creating Settings JSON")
+            print("First Time Run")
             first_time = True
-            s_data['keys'] = {}
-            s_data['keys']['token'] = None
-            s_data['keys']['itad-api-key'] = None
-            s_data['keys']['fixer-io-key'] = None
-            s_data['cogs'] = {}
-            s_data['info'] = {}
-            s_data['info']['last-login-time'] = None
-            s_data['info']['chrono-last-check'] = None
-            s_data['info']['chrono-true-last-check'] = None
+
         else:
             s_data = IO.read_settings_as_json()
             if s_data is None:
                 raise Exception(IO.settings_fail_read)
+
+        s_data = self.ensure_all_fields(s_data)
 
         """Load cogs"""
         folder_cogs = self.get_cogs_in_folder()
@@ -133,7 +168,7 @@ class BlueBot(commands.Bot):
             cog_path = "cogs.{}".format(folder_cog)
             if first_time is True:
                 s_data['cogs'][folder_cog] = True
-                should_write_after_finish = True
+                # should_write_after_finish = True
             else:
                 try:
                     should_load = s_data['cogs'][folder_cog]
@@ -141,7 +176,7 @@ class BlueBot(commands.Bot):
                     print("New Cog '{}'".format(folder_cog))
                     s_data['cogs'][folder_cog] = True
                     should_load = True
-                    should_write_after_finish = True
+                    # should_write_after_finish = True
 
                 if should_load is True:
                     try:
@@ -166,12 +201,12 @@ class BlueBot(commands.Bot):
             if f_cog not in r_cogs:
                 print("Cog '{}' no longer exists, removing settings entry".format(f_cog))
                 del s_data['cogs'][f_cog]
-                should_write_after_finish = True
+                # should_write_after_finish = True
 
         """Write settings to file"""
-        if should_write_after_finish is True:
-            if IO.write_settings(s_data) is False:
-                raise Exception(IO.settings_fail_write)
+        # if should_write_after_finish is True:
+        if IO.write_settings(s_data) is False:
+            raise Exception(IO.settings_fail_write)
 
         if token:
             super().run(token)

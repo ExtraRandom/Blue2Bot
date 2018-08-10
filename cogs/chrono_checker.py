@@ -73,7 +73,8 @@ class Main:
                         embed.set_thumbnail(url=image)
 
                         converted_sale_price = simplify.convert_USD_to_GBP(float(sale_price))
-                        if converted_sale_price == -1:
+
+                        if converted_sale_price < 0:
                             embed.add_field(name="Game: {}".format(name),
                                             value="Sale Price: ${} ~~${}~~\n"
                                                   "Discount: {}"
@@ -96,7 +97,8 @@ class Main:
                             embed.add_field(name="Best Historical Price",
                                             value="Price: £{}\n"
                                                   "Shop: {}"
-                                                  "".format(price, shop))
+                                                  "".format(ensure_zero(price), shop))
+                            embed.set_footer(text="Actual prices may vary by a few pence due to currency conversion.")
 
                         for c_id in channel_ids:
                             await self.bot.send_message(c_id, embed=embed)
@@ -122,13 +124,20 @@ async def fetch_chrono_data():
         return "Error", "2", "3", "4", "5", "6", "7", "8"
 
 
+def ensure_zero(price):
+    inp = str(price).split(".")
+    if len(inp[1]) == 1:
+        z_price = "{}.{}0".format(inp[0], inp[1])
+        return z_price
+    else:
+        return price
+
+
 def itad_check(api_key, app_id):
     plain = Itad.get_plain_from_steam_appid(api_key, app_id)
 
     hb_currency, hb_price, hb_shop = Itad.get_historical_best_price(api_key,
                                                                     plain)
-
-    # print(hb_currency, hb_price, hb_shop)
 
     return hb_price, hb_shop
 

@@ -49,65 +49,72 @@ class Main:
         while True:
             today = datetime.utcnow()
 
-            if (today.hour > 17) or (today.hour >= 16 and today.minute >= 20):
-                if self.last_date_sent != datetime(today.year, today.month, today.day, 10, 00, 00, 00):
-                    name, discount, sale_price, normal_price, image, start_date, end_date, \
-                        steam_link = await fetch_chrono_data()
+            try:
+                if (today.hour > 17) or (today.hour >= 16 and today.minute >= 20):
+                    if self.last_date_sent != datetime(today.year, today.month, today.day, 10, 00, 00, 00):
+                        name, discount, sale_price, normal_price, image, start_date, end_date, \
+                            steam_link = await fetch_chrono_data()
 
-                    if name != "Error":
-                        self.last_date_sent = datetime(today.year, today.month, today.day, 10, 00, 00, 00)
-                        data = IO.read_settings_as_json()
-                        data['info']['chrono-true-last-check'] = str(today)
-                        if data is not None:
-                            data['info']['chrono-last-check'] = str(self.last_date_sent)
-                            if IO.write_settings(data) is False:
-                                Logger.write(IO.settings_fail_write)
-                        else:
-                            Logger.write(IO.settings_fail_read)
+                        if name != "Error":
+                            end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-                        end_time = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+                            embed = discord.Embed(title="Chrono.gg Deal",
+                                                  colour=discord.Colour.dark_green(),
+                                                  description="Deal Ends at {} UTC".format(end_time))
+                            embed.set_thumbnail(url=image)
 
-                        embed = discord.Embed(title="Chrono.gg Deal",
-                                              colour=discord.Colour.dark_green(),
-                                              description="Deal Ends at {} UTC".format(end_time))
-                        embed.set_thumbnail(url=image)
+                            converted_sale_price = simplify.convert_USD_to_GBP(float(sale_price))
 
-                        converted_sale_price = simplify.convert_USD_to_GBP(float(sale_price))
+                            if converted_sale_price < 0:
+                                embed.add_field(name="Game: {}".format(name),
+                                                value="Sale Price: ${} ~~${}~~\n"
+                                                      "Discount: {}"
+                                                      "".format(sale_price, normal_price, discount))
+                            else:
+                                embed.add_field(name="Game: {}".format(name),
+                                                value="Sale Price: £{} \n"
+                                                      "Discount: {}"
+                                                      "".format(converted_sale_price, discount))
 
-                        if converted_sale_price < 0:
-                            embed.add_field(name="Game: {}".format(name),
-                                            value="Sale Price: ${} ~~${}~~\n"
-                                                  "Discount: {}"
-                                                  "".format(sale_price, normal_price, discount))
-                        else:
-                            embed.add_field(name="Game: {}".format(name),
-                                            value="Sale Price: £{} \n"
-                                                  "Discount: {}"
-                                                  "".format(converted_sale_price, discount))
+                            embed.add_field(name="Links",
+                                            value="{}\n"
+                                                  "{}".format(store_link, steam_link))
 
-                        embed.add_field(name="Links",
-                                        value="{}\n"
-                                              "{}".format(store_link, steam_link))
+                            steam_url_split = str(steam_link).split("/")
+                            app_id = steam_url_split[3] + "/" + steam_url_split[4]
 
-                        steam_url_split = str(steam_link).split("/")
-                        app_id = steam_url_split[3] + "/" + steam_url_split[4]
+                            price, shop = itad_check(self.api_key, app_id)
 
-                        price, shop = itad_check(self.api_key, app_id)
-                        if price != "Error":
-                            embed.add_field(name="Best Historical Price",
-                                            value="Price: £{}\n"
-                                                  "Shop: {}"
-                                                  "".format(ensure_zero(price), shop))
-                            embed.set_footer(text="Actual prices may vary by a few pence due to currency conversion.")
+                            if price != "Error":
+                                embed.add_field(name="Best Historical Price",
+                                                value="Price: £{}\n"
+                                                      "Shop: {}"
+                                                      "".format(ensure_zero(price), shop))
+                                embed.set_footer(
+                                    text="Actual prices may vary by a few pence due to currency conversion.")
 
-                        for c_id in channel_ids:
-                            await self.bot.send_message(c_id, embed=embed)
+                            for c_id in channel_ids:
+                                await self.bot.send_message(c_id, embed=embed)
+
+                            self.last_date_sent = datetime(today.year, today.month, today.day, 10, 00, 00, 00)
+                            data = IO.read_settings_as_json()
+                            data['info']['chrono-true-last-check'] = str(today)
+                            if data is not None:
+                                data['info']['chrono-last-check'] = str(self.last_date_sent)
+                                if IO.write_settings(data) is False:
+                                    Logger.write(IO.settings_fail_write)
+                            else:
+                                Logger.write(IO.settings_fail_read)
 
                         else:
                             pass
+                    else:
+                        pass
                 else:
                     pass
-            else:
+
+            except Exception as e:
+                Logger.write(e)
                 pass
 
             await asyncio.sleep(5 * 60)
@@ -126,6 +133,10 @@ async def fetch_chrono_data():
 
 def ensure_zero(price):
     inp = str(price).split(".")
+    if len(inp) == 1:
+        # if price is £4.00 then inp will be ['4'] so no need to ensure zero
+        return "{}.00".format(price)
+
     if len(inp[1]) == 1:
         z_price = "{}.{}0".format(inp[0], inp[1])
         return z_price

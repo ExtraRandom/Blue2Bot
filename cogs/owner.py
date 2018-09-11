@@ -12,8 +12,7 @@ class Owner:
     async def load(self, *, cog: str):
         """Load a cog"""
         cog_list = []
-        c_dir = os.path.dirname(os.path.realpath(__file__))
-        for c_file in os.listdir(os.path.join(c_dir, "cogs")):
+        for c_file in os.listdir(os.path.join(self.bot.base_directory, "cogs")):
             if c_file.endswith(".py"):
                 cog_list.append("cogs.{}".format(c_file.replace(".py", "")))
 

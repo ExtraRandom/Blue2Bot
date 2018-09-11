@@ -1,5 +1,6 @@
 from discord.ext import commands
 from cogs.utils import perms, IO
+from cogs.utils.logger import Logger
 import os
 
 
@@ -23,6 +24,7 @@ class Owner:
                 self.bot.load_extension(l_cog_name)
                 await self.bot.say("Successfully loaded cog '{}'.".format(cog))
             except Exception as e:
+                Logger.write(e)
                 await self.bot.say("Failed to load cog '{}'. Reason: {}".format(cog, type(e).__name__))
                 return
         else:

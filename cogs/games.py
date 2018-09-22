@@ -85,14 +85,18 @@ class Games:
 
         g_counter = 0
         app_id_list = []
+        titles = []
+
         for i in range(1, len_res):
             g_counter += 1
-            if g_counter >= 5:
+            if g_counter >= 4:
                 break
             steam_url = results[i]['store_url']
             steam_url_split = steam_url.split("/")
             app_id = steam_url_split[3] + "/" + steam_url_split[4]
             app_id_list.append(app_id)
+
+            titles.append(results[i]["title"])
 
         s_data = IO.read_settings_as_json()
         if s_data is None:
@@ -107,16 +111,42 @@ class Games:
 
         plains = Itad.get_multiple_plains_from_steam_appids(api_key, app_id_list)
 
-        p_counter = 1
-        for plain in plains:
-            title = results[p_counter]['title']
-            p_counter += 1
-            price, shop, url = Itad.get_best_price(api_key, plain)
+        titles_plains = []
+        for k in range(len(titles)):
+            titles_plains.append(
+                {
+                    "title": titles[k],
+                    "plain": plains[k]
+                }
+            )
+
+        # print(titles_plains)
+
+        current_best = Itad.get_multiple_current_best_price(api_key, plains)
+        historical_best = Itad.get_multiple_historical_best_price(api_key, plains)
+
+        for game in titles_plains:
+            c_plain = game["plain"]
+
+            title = game["title"]
+            cb_price = current_best[c_plain]["price"]
+            cb_url = current_best[c_plain]["url"]
+            cb_store = current_best[c_plain]["store"]
+
+            hb_price = historical_best[c_plain]["price"]
+            hb_date = historical_best[c_plain]["date"]
+            hb_store = historical_best[c_plain]["store"]
+
             embed.add_field(name="{}".format(title),
-                            value="Price: £{}\n"
+                            value="**Current Best Price**\n"
+                                  "Price: £{}\n"
                                   "Shop: {}\n"
-                                  "URL: {}"
-                                  "".format(price, url, shop))
+                                  "URL: {}\n"
+                                  "**Historical Best Price**\n"
+                                  "Price: £{}\n"
+                                  "Shop: {}\n"
+                                  "When: {}"
+                                  "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
 
         await self.bot.edit_message(msg, embed=embed)
 

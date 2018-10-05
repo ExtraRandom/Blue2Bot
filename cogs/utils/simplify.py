@@ -67,6 +67,21 @@ def convert_USD_to_GBP(amount):
     return round(amount_to_GBP, 2)
 
 
+def ids_from_mentions(message):
+    mentioned = message.mentions
+    id_list = []
+
+    l_ment = len(mentioned)
+
+    if l_ment == 0:
+        return None
+    else:
+        for i in range(l_ment):
+            u_id = mentioned[i].id
+            id_list.append(u_id)
+
+        return id_list
+
 
 
 

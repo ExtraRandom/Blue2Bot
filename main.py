@@ -43,7 +43,7 @@ class BlueBot(commands.Bot):
                          "".format(login_msg))
         print(login_msg)
 
-        game = discord.Game(name="@Blue2#2113 help")
+        game = discord.Game(name="?help")
         await self.change_presence(game=game)
 
     async def on_message(self, message):
@@ -63,24 +63,32 @@ class BlueBot(commands.Bot):
         if isinstance(error, commands.MissingRequiredArgument):
             # c_obj = bot.get_command(cmd)
             # print(c_obj.help)
-            await self.bot.send_message(channel, "Missing Argument")
+            await self.send_message(channel, "Missing Argument")
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CheckFailure):
-            await self.bot.send_message(channel, "You do not have permission to use that command!")
+            await self.send_message(channel, "You do not have permission to use that command!")
+        elif isinstance(error, commands.CommandOnCooldown):
+            await self.send_message(channel, "This command is currently on cooldown. {}" 
+                                             "".format(str(error).split(". ")[1]))
 
         else:
-            cmd = simplify.remove_prefix_no_command(self, ctx.message)
-            cog = self.get_command(cmd).cog_name
+            cmd = str(ctx.command)
+            full_cmd = ctx.message
+            try:
+                cog = self.get_command(cmd).cog_name
+            except AttributeError:
+                s_cmd = cmd.split(" ")[0]
+                cog = self.get_command(s_cmd).cog_name
 
             err_msg = "----------------------------------------------------------\n" \
                       "An Error Occurred at {}\n" \
-                      "Command: {}\n" \
+                      "Command: {} ({})\n" \
                       "    Cog: {}\n" \
                       "  Error: {}\n" \
                       "   Args: {}\n" \
                       "----------------------------------------------------------" \
-                      "".format(Logger.time_now(), cmd, cog, error.original, error.args)
+                      "".format(Logger.time_now(), cmd, full_cmd, cog, error.original, error.args)
             Logger.log_write(err_msg)
             await self.send_message(channel, "**Command Errored:**\n "
                                              "{}".format(error))
@@ -111,7 +119,8 @@ class BlueBot(commands.Bot):
                 "keys": {
                     "token": None,
                     "itad-api-key": None,
-                    "fixer-io-key": None
+                    "fixer-io-key": None,
+                    "trn-api-key": None
                 },
                 "cogs": {},
                 "info": {

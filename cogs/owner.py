@@ -115,6 +115,24 @@ class Owner:
         except Exception as e:
             await self.bot.say("Failed to change avatar")
 
+    @commands.command(hidden=True, pass_context=True)
+    @perms.is_dev()
+    async def purge(self, ctx, number):
+        """Purge given number of messages"""
+        # https://stackoverflow.com/questions/43465082/python-discord-py-delete-all-messages-in-a-text-channel
+        msgs = []
+        number = int(number)
+
+        if number == 1:
+            number = 2
+        elif number >= 100:
+            number = 90
+
+        async for x in self.bot.logs_from(ctx.message.channel, limit=number):
+            msgs.append(x)
+        await self.bot.delete_messages(msgs)
+        await self.bot.say("Deleted {} messages in {}".format(len(msgs), ctx.message.channel))
+
 
 def setup(bot):
     bot.add_cog(Owner(bot))

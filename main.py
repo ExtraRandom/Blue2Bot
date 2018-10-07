@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
 import os
-from cogs.utils import IO, simplify
+from cogs.utils import IO
 from cogs.utils.logger import Logger
 
 
@@ -21,8 +21,7 @@ class BlueBot(commands.Bot):
 
         super().__init__(command_prefix=get_prefix,
                          description="Bot Developed by @Extra_Random#2564\n"
-                                     "Source code: https://github.com/ExtraRandom/Blue2Bot\n"
-                                     "Report an Issue: https://github.com/ExtraRandom/Blue2Bot/issues/new",
+                                     "Source code: https://github.com/ExtraRandom/Blue2Bot",
                          pm_help=False)
 
     async def on_ready(self):
@@ -50,10 +49,6 @@ class BlueBot(commands.Bot):
         bot_msg = message.author.bot
         if bot_msg is True:
             return
-
-        if message.content == "are you sure about that":
-            img = os.path.join(self.base_directory, "pictures", "memes", "aysat.gif")
-            await self.send_file(message.channel, img)
 
         await self.process_commands(message)
 
@@ -124,9 +119,7 @@ class BlueBot(commands.Bot):
                 },
                 "cogs": {},
                 "info": {
-                    "last-login-time": None,
-                    "chrono-last-check": None,
-                    "chrono-true-last-check": None
+                    "last-login-time": None
                 }
             }
         sd_len = len(settings_data)
@@ -157,7 +150,6 @@ class BlueBot(commands.Bot):
     def run(self):
         first_time = False
         s_data = {}
-        # should_write_after_finish = False
 
         """First time run check"""
         if os.path.isfile(IO.settings_file_path) is False:
@@ -177,15 +169,13 @@ class BlueBot(commands.Bot):
             cog_path = "cogs.{}".format(folder_cog)
             if first_time is True:
                 s_data['cogs'][folder_cog] = True
-                # should_write_after_finish = True
             else:
                 try:
                     should_load = s_data['cogs'][folder_cog]
                 except KeyError:
-                    print("New Cog '{}'".format(folder_cog))
+                    Logger.write("New Cog '{}'".format(folder_cog))
                     s_data['cogs'][folder_cog] = True
                     should_load = True
-                    # should_write_after_finish = True
 
                 if should_load is True:
                     try:
@@ -210,10 +200,8 @@ class BlueBot(commands.Bot):
             if f_cog not in r_cogs:
                 print("Cog '{}' no longer exists, removing settings entry".format(f_cog))
                 del s_data['cogs'][f_cog]
-                # should_write_after_finish = True
 
         """Write settings to file"""
-        # if should_write_after_finish is True:
         if IO.write_settings(s_data) is False:
             raise Exception(IO.settings_fail_write)
 

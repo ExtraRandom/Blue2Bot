@@ -61,7 +61,7 @@ class Owner:
                 await self.bot.say("Failed to unload cog '{}'. Reason: {}".format(cog, type(e).__name__))
                 return
         else:
-            await self.bot.say("No (loaded) cog called '{}'.".format(cog))
+            await self.bot.say("No loaded cog called '{}'.".format(cog))
             return
 
         data = IO.read_settings_as_json()
@@ -72,6 +72,35 @@ class Owner:
         if IO.write_settings(data) is False:
             await self.bot.say(IO.settings_fail_write)
             return
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def reload(self, *, cog: str):
+        """Reload a cog"""
+        ext_list = self.bot.extensions
+        cog_list = [cog for cog in ext_list]
+
+        cog_n = "cogs.{}".format(cog)
+        if cog_n in cog_list:
+            try:
+                self.bot.unload_extension(cog_n)
+            except Exception as e:
+                Logger.write(e)
+                await self.bot.say("Failed to unload cog '{}'".format(cog))
+                return
+        else:
+            await self.bot.say("No loaded cogs called '{}'".format(cog))
+            return
+
+        try:
+            self.bot.load_extension(cog_n)
+            await self.bot.say("Successfully reloaded cog '{}'".format(cog))
+        except Exception as e:
+            Logger.write(e)
+            await self.bot.say("Failed to reload cog '{}'")
+            return
+
+
 
     @commands.command(hidden=True)
     @perms.is_dev()
@@ -106,7 +135,7 @@ class Owner:
     @commands.command(hidden=True)
     @perms.is_dev()
     async def avatar(self, image: str):
-        """Change the bot's avatar (DEV ONLY)"""
+        """Change the bot's avatar"""
         try:
             with open(os.path.join(self.bot.base_directory, image), "rb") as avatar:
                 f = avatar.read()
@@ -118,7 +147,7 @@ class Owner:
     @commands.command(hidden=True, pass_context=True)
     @perms.is_dev()
     async def purge(self, ctx, number):
-        """Purge given number of messages"""
+        """Purge a given number of messages"""
         # https://stackoverflow.com/questions/43465082/python-discord-py-delete-all-messages-in-a-text-channel
         msgs = []
         number = int(number)

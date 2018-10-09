@@ -69,7 +69,7 @@ class BlueBot(commands.Bot):
 
         else:
             cmd = str(ctx.command)
-            full_cmd = ctx.message
+            full_cmd = ctx.message.content
             try:
                 cog = self.get_command(cmd).cog_name
             except AttributeError:
@@ -115,6 +115,7 @@ class BlueBot(commands.Bot):
                     "token": None,
                     "itad-api-key": None,
                     "fixer-io-key": None,
+                    "ftn-api-key": None,
                     "trn-api-key": None
                 },
                 "cogs": {},

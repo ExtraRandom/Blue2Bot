@@ -3,7 +3,7 @@ from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
-from cogs.utils import IO, simplify  # , csgo
+from cogs.utils import IO, simplify, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from datetime import datetime, timedelta
 
@@ -221,6 +221,70 @@ class Games:
             await self.bot.say("Fallout 76 is {} days, {} hours, {} minutes and {} seconds away from release."
                                "".format(day, hour, minute, second))
             return
+
+    @commands.group(pass_context=True, aliases=["fn"])
+    @commands.cooldown(5, 15*60)  # 5 calls every 15 minutes
+    async def fortnite(self, ctx):
+        """Use '?help fortnite' to see subcommands"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.say("Use '?help fortnite' to see subcommands")
+        # return
+
+    @fortnite.command(aliases=["c", "challenge", "chal"])
+    async def challenges(self):
+        """Get this weeks battle pass challenges"""
+        data, cached = fn_api.get_challenges()
+
+        if data is None:
+            await self.bot.say("Couldn't reach Fortnite API")
+            return
+
+        current_week = data["currentweek"]
+        season = data["season"]
+        star_img = data["star"]
+        cw = "week{}".format(current_week)
+        raw_challenges = data["challenges"][cw]
+
+        embed = discord.Embed(title="Fortnite Challenges",
+                              description="Season {}, Week {}".format(season, current_week),
+                              colour=discord.Colour.blue())
+        embed.set_thumbnail(url=star_img)
+        if cached is True:
+            embed.set_footer(text="This is cached data")
+
+        for challenge in raw_challenges:
+            desc = challenge["challenge"]
+            todo = challenge["total"]
+            reward = challenge["stars"]
+            difficulty = challenge["difficulty"]
+
+            if difficulty == "hard":
+                f_desc = "{} (hard)".format(desc)
+            else:
+                f_desc = desc
+
+            embed.add_field(name="{}".format(f_desc),
+                            value="Required Amount: {}\n"
+                                  "Reward: {} stars"
+                                  "".format(todo, reward))
+
+        await self.bot.say(embed=embed)
+
+    """
+    @fortnite.command(aliases=["s", "shop", "i", "items", "item"])
+    async def store(self):
+
+        data = fn_api.get_store()
+
+        if data is None:
+            await self.bot.say("Couldn't reach Fortnite API")
+            return
+
+        date = data["date"]
+
+        for item in data["items"]:
+            print("heck")
+    """
 
 
 def playstation_search(platform, term):

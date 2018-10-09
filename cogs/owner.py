@@ -157,7 +157,7 @@ class Owner:
         elif number >= 100:
             number = 90
 
-        async for x in self.bot.logs_from(ctx.message.channel, limit=number):
+        async for x in self.bot.logs_from(ctx.message.channel, limit=number+1):
             msgs.append(x)
         await self.bot.delete_messages(msgs)
         await self.bot.say("Deleted {} messages in {}".format(len(msgs), ctx.message.channel))

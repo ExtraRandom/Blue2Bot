@@ -153,7 +153,7 @@ class BlueBot(commands.Bot):
 
         """First time run check"""
         if os.path.isfile(IO.settings_file_path) is False:
-            print("First Time Run")
+            Logger.write_and_print("First Time Run")
             first_time = True
 
         else:
@@ -198,7 +198,7 @@ class BlueBot(commands.Bot):
         f_cogs = self.get_cogs_in_settings()
         for f_cog in f_cogs:
             if f_cog not in r_cogs:
-                print("Cog '{}' no longer exists, removing settings entry".format(f_cog))
+                Logger.write_and_print("Cog '{}' no longer exists, removing settings entry".format(f_cog))
                 del s_data['cogs'][f_cog]
 
         """Write settings to file"""
@@ -208,7 +208,8 @@ class BlueBot(commands.Bot):
         if token:
             super().run(token)
         else:
-            print("Token is not set! Go to {} and change the token parameter!".format(IO.settings_file_path))
+            Logger.write_and_print("Token is not set! Go to {} and change the token parameter!"
+                                   "".format(IO.settings_file_path))
 
 
 if __name__ == '__main__':

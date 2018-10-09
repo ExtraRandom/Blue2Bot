@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
-from GameStoresAPI.Steam.steam import Steam
-from GameStoresAPI.ITAD.itad import Itad
-from GameStoresAPI.Playstation.playstation import Playstation
+from GameStoresAPI.steam import Steam
+from GameStoresAPI.itad import Itad
+from GameStoresAPI.playstation import Playstation
 from cogs.utils import IO, simplify  # , csgo
 from cogs.utils.logger import Logger
 from datetime import datetime, timedelta

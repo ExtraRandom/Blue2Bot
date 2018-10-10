@@ -120,33 +120,37 @@ class Games:
                 }
             )
 
-        # print(titles_plains)
-
         current_best = Itad.get_multiple_current_best_price(api_key, plains)
         historical_best = Itad.get_multiple_historical_best_price(api_key, plains)
 
         for game in titles_plains:
+
             c_plain = game["plain"]
-
             title = game["title"]
-            cb_price = current_best[c_plain]["price"]
-            cb_url = current_best[c_plain]["url"]
-            cb_store = current_best[c_plain]["store"]
 
-            hb_price = historical_best[c_plain]["price"]
-            hb_date = historical_best[c_plain]["date"]
-            hb_store = historical_best[c_plain]["store"]
+            try:
+                cb_price = current_best[c_plain]["price"]
+                cb_url = current_best[c_plain]["url"]
+                cb_store = current_best[c_plain]["store"]
 
-            embed.add_field(name="{}".format(title),
-                            value="**Current Best Price**\n"
-                                  "Price: £{}\n"
-                                  "Shop: {}\n"
-                                  "URL: {}\n"
-                                  "**Historical Best Price**\n"
-                                  "Price: £{}\n"
-                                  "Shop: {}\n"
-                                  "When: {}"
-                                  "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
+                hb_price = historical_best[c_plain]["price"]
+                hb_date = historical_best[c_plain]["date"]
+                hb_store = historical_best[c_plain]["store"]
+
+                embed.add_field(name="{}".format(title),
+                                value="**Current Best Price**\n"
+                                      "Price: £{}\n"
+                                      "Shop: {}\n"
+                                      "URL: {}\n"
+                                      "**Historical Best Price**\n"
+                                      "Price: £{}\n"
+                                      "Shop: {}\n"
+                                      "When: {}"
+                                      "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
+
+
+            except Exception as e:
+                Logger.write(e)
 
         await self.bot.edit_message(msg, embed=embed)
 

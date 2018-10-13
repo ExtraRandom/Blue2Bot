@@ -13,28 +13,23 @@ class Games:
         self.bot = bot
         self.fetching = "Retrieving data... please wait!"
 
-    @commands.command(name="steam", pass_context=True)
-    async def steam_search(self, ctx):
+    @commands.command(name="steam")
+    async def steam_search(self, *, search_term: str):
         """Search for games on steam"""
         msg = await self.bot.say(self.fetching)
 
-        term = simplify.remove_prefix_in_message(self.bot, ctx.message, "steam")
-        if term is None:
-            await self.bot.edit_message(msg, "Please provide a search term for the Steam Command")
-            return
-
-        results = Steam.search_by_name(Steam.format_search(term))
+        results = Steam.search_by_name(Steam.format_search(search_term))
         if results == "Error":
             await self.bot.edit_message(msg, "An error occured whilst getting results. Try again later")
 
         len_res = len(results)
 
-        embed = discord.Embed(title="'{}' on Steam".format(term),
+        embed = discord.Embed(title="'{}' on Steam".format(search_term),
                               colour=discord.Colour.blue())
 
         if results[0]['results'] is False:
             embed.add_field(name="Search",
-                            value="No games found using term '{}'".format(term))
+                            value="No games found using term '{}'".format(search_term))
             await self.bot.edit_message(msg, embed=embed)
             return
 
@@ -61,25 +56,20 @@ class Games:
 
         await self.bot.edit_message(msg, embed=embed)
 
-    @commands.command(pass_context=True)
-    async def itad(self, ctx):
+    @commands.command()
+    async def itad(self, *, search_term: str):
         """Search for games on ITAD.com using Steam App ID's"""
         msg = await self.bot.say(self.fetching)
 
-        term = simplify.remove_prefix_in_message(self.bot, ctx.message, "itad")
-        if term is None:
-            await self.bot.edit_message(msg, "Please provide a search term for the ITAD Command")
-            return
-
-        results = Steam.search_by_name(Steam.format_search(term))
+        results = Steam.search_by_name(Steam.format_search(search_term))
         len_res = len(results)
 
-        embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(term),
+        embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),
                               colour=discord.Colour.red())
 
         if results[0]['results'] is False:
             embed.add_field(name="Search",
-                            value="No games found using term '{}'".format(term))
+                            value="No games found using term '{}'".format(search_term))
             await self.bot.edit_message(msg, embed=embed)
             return
 
@@ -148,43 +138,30 @@ class Games:
                                       "When: {}"
                                       "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
 
-
             except Exception as e:
                 Logger.write(e)
 
         await self.bot.edit_message(msg, embed=embed)
 
-    @commands.command(pass_context=True)
-    async def ps4(self, ctx):
+    @commands.command()
+    async def ps4(self, *, search_term: str):
         """Search for PS4 games on the UK Playstation Store"""
         msg = await self.bot.say(self.fetching)
 
         try:
-            term = simplify.remove_prefix_in_message(self.bot, ctx.message, "ps4")
-
-            if term is None:
-                await self.bot.say("Please provide a search term for the ps4 command")
-                return
-
-            await self.bot.edit_message(msg, embed=playstation_search("PS4", term))
+            await self.bot.edit_message(msg, embed=playstation_search("PS4", search_term))
 
         except Exception as e:
             Logger.write(e)
             await self.bot.edit_message(msg, "PS4 Game Search Failed")
 
-    @commands.command(pass_context=True)
-    async def ps3(self, ctx):
+    @commands.command()
+    async def ps3(self, *, search_term: str):
         """Search for PS3 games on the UK Playstation Store"""
         msg = await self.bot.say(self.fetching)
 
         try:
-            term = simplify.remove_prefix_in_message(self.bot, ctx.message, "ps3")
-
-            if term is None:
-                await self.bot.say("Please provide a search term for the ps3 command")
-                return
-
-            await self.bot.edit_message(msg, embed=playstation_search("PS3", term))
+            await self.bot.edit_message(msg, embed=playstation_search("PS3", search_term))
 
         except Exception as e:
             Logger.write(e)
@@ -227,12 +204,10 @@ class Games:
             return
 
     @commands.group(pass_context=True, aliases=["fn"])
-    @commands.cooldown(5, 15*60)  # 5 calls every 15 minutes
     async def fortnite(self, ctx):
         """Use '?help fortnite' to see subcommands"""
         if ctx.invoked_subcommand is None:
             await self.bot.say("Use '?help fortnite' to see subcommands")
-        # return
 
     @fortnite.command(aliases=["c", "challenge", "chal"])
     async def challenges(self):
@@ -263,7 +238,7 @@ class Games:
             difficulty = challenge["difficulty"]
 
             if difficulty == "hard":
-                f_desc = "{} (hard)".format(desc)
+                f_desc = "{} (Hard)".format(desc)
             else:
                 f_desc = desc
 
@@ -273,6 +248,20 @@ class Games:
                                   "".format(todo, reward))
 
         await self.bot.say(embed=embed)
+
+    """
+    @fortnite.command(aliases=["s", "statistics"])
+    @commands.cooldown(5, 15 * 60)  # 5 calls every 15 minutes
+    async def stats(self, *, username: str):
+        data = fn_api.get_user(username)
+
+        if data == "UNKNOWN_USER":
+            await self.bot.say("who that")
+        else:
+            await self.bot.say("ayyy lmao")
+
+        print(data)
+    """
 
     """
     @fortnite.command(aliases=["s", "shop", "i", "items", "item"])

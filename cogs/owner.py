@@ -100,8 +100,6 @@ class Owner:
             await self.bot.say("Failed to reload cog '{}'")
             return
 
-
-
     @commands.command(hidden=True)
     @perms.is_dev()
     async def shutdown(self):

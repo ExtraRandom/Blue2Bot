@@ -60,31 +60,6 @@ class Dev:
 
         await self.bot.say(embed=cl)
 
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def chrono(self):
-        """Check when chrono check last occurred"""
-        data = IO.read_settings_as_json()
-        if data is None:
-            await self.bot.say(IO.settings_fail_read)
-            return
-
-        lc = data['info']['chrono-true-last-check']
-        await self.bot.say("Last Check: {}".format(lc))
-
-    @commands.command(hidden=True, pass_context=True)
-    @perms.is_dev()
-    async def test(self, ctx):
-        command = "itad"
-        c_obj = self.bot.get_command(command)
-
-        print(dir(c_obj))
-        print(c_obj.brief)
-        print("h", c_obj.help)
-        print("d", c_obj.description)
-        print("c", c_obj.commands)
-        print("cd", c_obj.command)
-
     # @commands.command()
     # async def err(self):
     #    print(10 / 0)

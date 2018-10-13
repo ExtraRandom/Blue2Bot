@@ -56,9 +56,9 @@ class BlueBot(commands.Bot):
         channel = ctx.message.channel
 
         if isinstance(error, commands.MissingRequiredArgument):
-            # c_obj = bot.get_command(cmd)
-            # print(c_obj.help)
-            await self.send_message(channel, "Missing Argument")
+            formatter = commands.formatter.HelpFormatter()
+            f_help = formatter.format_help_for(ctx, ctx.command)
+            await self.send_message(channel, f_help[0])
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CheckFailure):

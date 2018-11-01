@@ -249,21 +249,6 @@ class Games:
 
         await self.bot.say(embed=embed)
 
-    """
-    @fortnite.command(aliases=["s", "statistics"])
-    @commands.cooldown(5, 15 * 60)  # 5 calls every 15 minutes
-    async def stats(self, *, username: str):
-        data = fn_api.get_user(username)
-
-        if data == "UNKNOWN_USER":
-            await self.bot.say("who that")
-        else:
-            await self.bot.say("ayyy lmao")
-
-        print(data)
-    """
-
-    """
     @fortnite.command(aliases=["s", "shop", "i", "items", "item"])
     async def store(self):
 
@@ -273,11 +258,26 @@ class Games:
             await self.bot.say("Couldn't reach Fortnite API")
             return
 
-        date = data["date"]
+        date = data[0]["date"]
 
-        for item in data["items"]:
-            print("heck")
-    """
+        emb = discord.Embed(title="Fortnite Store - {}".format(date),
+                            colour=discord.Colour.dark_blue())
+        # emb.set_footer(text="Version of this command with Images coming soon")
+
+        for item in data[0]["items"]:
+            name = item['name']
+            cost = item['cost']
+            img = item['item']['images']['background']
+            item_type = str(item['item']['type']).capitalize()
+            rarity = str(item['item']['rarity']).capitalize()
+
+            emb.add_field(name="{}".format(name),
+                          value="Cost: {}\n"
+                                "Type: {}\n"
+                                "Rarity: {}\n"
+                                "".format(cost, item_type, rarity))
+
+        await self.bot.say(embed=emb)
 
 
 def playstation_search(platform, term):

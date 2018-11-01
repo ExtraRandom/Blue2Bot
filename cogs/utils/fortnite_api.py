@@ -68,7 +68,7 @@ def __get_or_read_cache(url_end, filepath, payload):
             time_then = c_data["cached_time"]
             time_now = time.time()
 
-            if (time_now - time_then) >= 60 * 60 * 4:
+            if (time_now - time_then) >= 60 * 60 * 1:
                 r_data = __get_data_from_url(url_end, payload)
                 j_data = json.loads(r_data)
                 j_data["cached_time"] = time.time()

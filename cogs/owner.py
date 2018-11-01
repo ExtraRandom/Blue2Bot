@@ -158,7 +158,7 @@ class Owner:
         async for x in self.bot.logs_from(ctx.message.channel, limit=number+1):
             msgs.append(x)
         await self.bot.delete_messages(msgs)
-        await self.bot.say("Deleted {} messages in {}".format(len(msgs), ctx.message.channel))
+        await self.bot.say("Deleted {} messages in {}".format(number, ctx.message.channel))
 
 
 def setup(bot):

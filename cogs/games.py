@@ -167,9 +167,10 @@ class Games:
             Logger.write(e)
             await self.bot.edit_message(msg, "PS3 Game Search Failed")
 
+    """
     @commands.command(aliases=["76", "fallout", "f76", "fo76"])
     async def fallout76(self):
-        """Fallout 76 Countdown"""
+        "Fallout 76 Countdown"
         rd = datetime(year=2018, month=11, day=14, hour=0, minute=0, second=0, microsecond=0)
         now = datetime.now()
         td = timedelta.total_seconds(rd - now)
@@ -202,6 +203,7 @@ class Games:
             await self.bot.say("Fallout 76 is {} days, {} hours, {} minutes and {} seconds away from release."
                                "".format(day, hour, minute, second))
             return
+    """
 
     @commands.group(pass_context=True, aliases=["fn"])
     async def fortnite(self, ctx):

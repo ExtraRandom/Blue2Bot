@@ -29,10 +29,19 @@ class Calculation:
             await self.bot.say("{} GigaBytes?! You'll be dead before that finishes downloading!")
             return
 
-        speeds = {'3MB/s (24Mb/s)': 24, '4MB/s (32Mb/s)': 32, '5MB/s (40Mb/s)': 40,
-                  '18.75MB/s (150Mb/s)': 150, '37.5MB/s (300Mb/s)': 300}
+        speeds = {'3MB/s (24Mb/s)': 24,
+                  '4MB/s (32Mb/s)': 32,
+                  '5MB/s (40Mb/s)': 40,
+                  '18.75MB/s (150Mb/s)': 150,
+                  '25MB/s (200Mb/s)': 200,
+                  '37.5MB/s (300Mb/s)': 300}
 
-        order = ['3MB/s (24Mb/s)', '4MB/s (32Mb/s)', '5MB/s (40Mb/s)', '18.75MB/s (150Mb/s)', '37.5MB/s (300Mb/s)']
+        order = ['3MB/s (24Mb/s)',
+                 '4MB/s (32Mb/s)',
+                 '5MB/s (40Mb/s)',
+                 '18.75MB/s (150Mb/s)',
+                 '25MB/s (200Mb/s)',
+                 '37.5MB/s (300Mb/s)']
 
         embed = discord.Embed(title="Download Times for {} GigaBytes (GB)".format(size_in_gigabytes),
                               colour=discord.Colour.dark_green(),

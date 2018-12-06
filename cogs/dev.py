@@ -10,12 +10,12 @@ class Dev:
         self.bot = bot
 
     @commands.command()
-    async def uptime(self):
+    async def uptime(self, ctx):
         """Shows the bots current uptime"""
         try:
             data = IO.read_settings_as_json()
             if data is None:
-                await self.bot.say(IO.settings_fail_read)
+                await ctx.send(IO.settings_fail_read)
                 return
 
             login_time = datetime.strptime(data['info']['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
@@ -28,21 +28,21 @@ class Dev:
             h, m = divmod(m, 60)
             uptime = "%d:%02d:%02d" % (h, m, s)
 
-            await self.bot.say("Bot Uptime: {}".format(uptime))
+            await ctx.send("Bot Uptime: {}".format(uptime))
 
         except Exception as e:
-            await self.bot.say("Error getting bot uptime. Reason: {}".format(type(e).__name__))
+            await ctx.send("Error getting bot uptime. Reason: {}".format(type(e).__name__))
 
     @commands.command()
-    async def github(self):
+    async def github(self, ctx):
         """Link to the bot's source code"""
-        await self.bot.say("https://github.com/ExtraRandom/Blue2Bot")
+        await ctx.send("https://github.com/ExtraRandom/Blue2Bot")
 
     @commands.command(aliases=["version", "update"])
-    async def changelog(self):
+    async def changelog(self, ctx):
         """See what was changed in the last few updates"""
         if not os.path.isdir(os.path.join(self.bot.base_directory, ".git")):
-            await self.bot.say("Bot wasn't installed with Git")
+            await ctx.send("Bot wasn't installed with Git")
             return
 
         result = os.popen('cd {} &&'
@@ -58,7 +58,7 @@ class Dev:
                 cl.add_field(name="Changes committed {}".format(time_ago),
                              value="{}\n".format(changed.replace(" [", "\n[")))
 
-        await self.bot.say(embed=cl)
+        await ctx.send(embed=cl)
 
     # @commands.command()
     # async def err(self):

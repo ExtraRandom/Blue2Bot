@@ -5,7 +5,6 @@ from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
 from cogs.utils import IO, simplify, fortnite_api as fn_api
 from cogs.utils.logger import Logger
-from datetime import datetime, timedelta
 
 
 class Games:
@@ -14,13 +13,13 @@ class Games:
         self.fetching = "Retrieving data... please wait!"
 
     @commands.command(name="steam")
-    async def steam_search(self, *, search_term: str):
+    async def steam_search(self, ctx, *, search_term: str):
         """Search for games on steam"""
-        msg = await self.bot.say(self.fetching)
+        msg = await ctx.send(self.fetching)
 
         results = Steam.search_by_name(Steam.format_search(search_term))
         if results == "Error":
-            await self.bot.edit_message(msg, "An error occured whilst getting results. Try again later")
+            await msg.edit("An error occured whilst getting results. Try again later")
 
         len_res = len(results)
 
@@ -30,7 +29,7 @@ class Games:
         if results[0]['results'] is False:
             embed.add_field(name="Search",
                             value="No games found using term '{}'".format(search_term))
-            await self.bot.edit_message(msg, embed=embed)
+            await msg.edit(embed=embed)
             return
 
         g_counter = 0
@@ -54,12 +53,12 @@ class Games:
                                   "URL: {}"
                                   "".format(results[i]['release_date'], price, steam_link))
 
-        await self.bot.edit_message(msg, embed=embed)
+        await msg.edit(embed=embed)
 
     @commands.command()
-    async def itad(self, *, search_term: str):
+    async def itad(self, ctx, *, search_term: str):
         """Search for games on ITAD.com using Steam App ID's"""
-        msg = await self.bot.say(self.fetching)
+        msg = await ctx.send(self.fetching)
 
         results = Steam.search_by_name(Steam.format_search(search_term))
         len_res = len(results)
@@ -70,7 +69,7 @@ class Games:
         if results[0]['results'] is False:
             embed.add_field(name="Search",
                             value="No games found using term '{}'".format(search_term))
-            await self.bot.edit_message(msg, embed=embed)
+            await msg.edit(embed=embed)
             return
 
         g_counter = 0
@@ -90,11 +89,11 @@ class Games:
 
         s_data = IO.read_settings_as_json()
         if s_data is None:
-            await self.bot.say(IO.settings_fail_read)
+            await msg.edit(IO.settings_fail_read)
             return
 
         if s_data['keys']['itad-api-key'] is None:
-            await self.bot.say("ITAD API Key hasn't been set. Go to the settings file to set it now!")
+            await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
             return
         else:
             api_key = s_data['keys']['itad-api-key']
@@ -141,83 +140,45 @@ class Games:
             except Exception as e:
                 Logger.write(e)
 
-        await self.bot.edit_message(msg, embed=embed)
+        await msg.edit(embed=embed)
 
     @commands.command()
-    async def ps4(self, *, search_term: str):
+    async def ps4(self, ctx, *, search_term: str):
         """Search for PS4 games on the UK Playstation Store"""
-        msg = await self.bot.say(self.fetching)
+        msg = await ctx.send(self.fetching)
 
         try:
-            await self.bot.edit_message(msg, embed=playstation_search("PS4", search_term))
+            await msg.edit(embed=playstation_search("PS4", search_term))
 
         except Exception as e:
             Logger.write(e)
-            await self.bot.edit_message(msg, "PS4 Game Search Failed")
+            await msg.edit("PS4 Game Search Failed")
 
     @commands.command()
-    async def ps3(self, *, search_term: str):
+    async def ps3(self, ctx, *, search_term: str):
         """Search for PS3 games on the UK Playstation Store"""
-        msg = await self.bot.say(self.fetching)
+        msg = await ctx.send(self.fetching)
 
         try:
-            await self.bot.edit_message(msg, embed=playstation_search("PS3", search_term))
+            await msg.edit(embed=playstation_search("PS3", search_term))
 
         except Exception as e:
             Logger.write(e)
-            await self.bot.edit_message(msg, "PS3 Game Search Failed")
-
-    """
-    @commands.command(aliases=["76", "fallout", "f76", "fo76"])
-    async def fallout76(self):
-        "Fallout 76 Countdown"
-        rd = datetime(year=2018, month=11, day=14, hour=0, minute=0, second=0, microsecond=0)
-        now = datetime.now()
-        td = timedelta.total_seconds(rd - now)
-
-        m, s = divmod(td, 60)
-        h, m = divmod(m, 60)
-        d, h = divmod(h, 24)
-
-        cd_str = ("%d:%02d:%02d:%02d" % (d, h, m, s))
-        day, hour, minute, second = cd_str.split(":")
-
-        if int(day) <= -1:
-            await self.bot.say("Fallout 76 is out now!")
-            return
-        elif int(day) == 0:
-            if int(hour) >= 1:
-                await self.bot.say("It's so close! Fallout 76 releases in {} hours, {} minutes and {} seconds"
-                                   "".format(hour, minute, second))
-                return
-            else:  # hour is 0
-                if int(minute) >= 1:
-                    await self.bot.say("Only {} minutes and {} seconds until Fallout 76 is released!"
-                                       "".format(minute, second))
-                    return
-                else:
-                    await self.bot.say("Wew lad, only {} seconds until Fallout 76 is upon us."
-                                       "".format(second))
-                    return
-        else:
-            await self.bot.say("Fallout 76 is {} days, {} hours, {} minutes and {} seconds away from release."
-                               "".format(day, hour, minute, second))
-            return
-    """
+            await msg.edit("PS3 Game Search Failed")
 
     @commands.group(pass_context=True, aliases=["fn"])
     async def fortnite(self, ctx):
         """Use '?help fortnite' to see subcommands"""
         if ctx.invoked_subcommand is None:
-            await self.bot.say("Use '?help fortnite' to see subcommands")
+            await ctx.send("Use '?help fortnite' to see subcommands")
 
     @fortnite.command(aliases=["c", "challenge", "chal"])
-    async def challenges(self):
+    async def challenges(self, ctx):
         """Get this weeks battle pass challenges"""
         data, cached = fn_api.get_challenges()
 
         if data is None:
-            await self.bot.say("Couldn't reach Fortnite API")
+            await ctx.send("Couldn't reach Fortnite API")
             return
 
         current_week = data["currentweek"]
@@ -249,15 +210,14 @@ class Games:
                                   "Reward: {} stars"
                                   "".format(todo, reward))
 
-        await self.bot.say(embed=embed)
+        await ctx.send(embed=embed)
 
     @fortnite.command(aliases=["s", "shop", "i", "items", "item"])
-    async def store(self):
-
+    async def store(self, ctx):
         data = fn_api.get_store()
 
         if data is None:
-            await self.bot.say("Couldn't reach Fortnite API")
+            await ctx.send("Couldn't reach Fortnite API")
             return
 
         date = data[0]["date"]
@@ -269,7 +229,7 @@ class Games:
         for item in data[0]["items"]:
             name = item['name']
             cost = item['cost']
-            img = item['item']['images']['background']
+            # img = item['item']['images']['background']
             item_type = str(item['item']['type']).capitalize()
             rarity = str(item['item']['rarity']).capitalize()
 
@@ -279,7 +239,7 @@ class Games:
                                 "Rarity: {}\n"
                                 "".format(cost, item_type, rarity))
 
-        await self.bot.say(embed=emb)
+        await ctx.send(embed=emb)
 
 
 def playstation_search(platform, term):

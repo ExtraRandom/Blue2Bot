@@ -2,17 +2,13 @@ import discord
 from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
 import os
-from cogs.utils import IO
+from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
 
 
 def get_prefix(d_bot, message):
-    prefixes = ["?", "="]
-
-    if message.channel.is_private:
-        return '?'
-    else:
-        return commands.when_mentioned_or(*prefixes)(d_bot, message)
+    prefixes = ["?"]
+    return commands.when_mentioned_or(*prefixes)(d_bot, message)
 
 
 class BlueBot(commands.Bot):
@@ -23,6 +19,10 @@ class BlueBot(commands.Bot):
                          description="Bot Developed by @Extra_Random#2564\n"
                                      "Source code: https://github.com/ExtraRandom/Blue2Bot",
                          pm_help=False)
+        self.add_command(self.load)
+        self.add_command(self.unload)
+        self.add_command(self.reload)
+        self.add_command(self.cogs)
 
     async def on_ready(self):
         login_time = datetime.now()
@@ -42,9 +42,6 @@ class BlueBot(commands.Bot):
                          "".format(login_msg))
         print(login_msg)
 
-        game = discord.Game(name="?help")
-        await self.change_presence(game=game)
-
     async def on_message(self, message):
         bot_msg = message.author.bot
         if bot_msg is True:
@@ -52,21 +49,30 @@ class BlueBot(commands.Bot):
 
         await self.process_commands(message)
 
-    async def on_command_error(self, error, ctx):
+    async def on_command_error(self, ctx, error):
         channel = ctx.message.channel
+
+        if error.__cause__ is not None and str(error.__cause__).startswith("could not convert"):
+            # workaround for commands.ConversionError seemingly not picking up this error
+            # maybe change to be state that issue
+            formatter = commands.formatter.HelpFormatter()
+            f_help = await formatter.format_help_for(ctx, ctx.command)
+            cmd_info = f_help[0]
+            await channel.send(cmd_info)
+            return
 
         if isinstance(error, commands.MissingRequiredArgument):
             formatter = commands.formatter.HelpFormatter()
-            f_help = formatter.format_help_for(ctx, ctx.command)
-            await self.send_message(channel, f_help[0])
+            f_help = await formatter.format_help_for(ctx, ctx.command)
+            cmd_info = f_help[0]
+            await channel.send(cmd_info)
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CheckFailure):
-            await self.send_message(channel, "You do not have permission to use that command!")
+            await channel.send("You do not have permission to use that command!")
         elif isinstance(error, commands.CommandOnCooldown):
-            await self.send_message(channel, "This command is currently on cooldown. {}" 
+            await channel.send("This command is currently on cooldown. {}" 
                                              "".format(str(error).split(". ")[1]))
-
         else:
             cmd = str(ctx.command)
             full_cmd = ctx.message.content
@@ -83,10 +89,10 @@ class BlueBot(commands.Bot):
                       "  Error: {}\n" \
                       "   Args: {}\n" \
                       "----------------------------------------------------------" \
-                      "".format(Logger.time_now(), cmd, full_cmd, cog, error.original, error.args)
+                      "".format(Logger.time_now(), cmd, full_cmd, cog, error, error.args)
             Logger.log_write(err_msg)
-            await self.send_message(channel, "**Command Errored:**\n "
-                                             "{}".format(error))
+            await channel.send("**Command Errored:**\n "
+                               "{}".format(error))
 
     @staticmethod
     def get_cogs_in_folder():
@@ -211,6 +217,120 @@ class BlueBot(commands.Bot):
         else:
             Logger.write_and_print("Token is not set! Go to {} and change the token parameter!"
                                    "".format(IO.settings_file_path))
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def load(self, ctx, *, cog: str):
+        """Load a cog"""
+        cog_list = []
+        for c_file in os.listdir(os.path.join(self.base_directory, "cogs")):
+            if c_file.endswith(".py"):
+                cog_list.append("cogs.{}".format(c_file.replace(".py", "")))
+
+        l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
+
+        if l_cog_name in cog_list:
+            try:
+                self.load_extension(l_cog_name)
+                await ctx.send("Successfully loaded cog '{}'.".format(cog))
+            except Exception as e:
+                Logger.write(e)
+                await ctx.send("Failed to load cog '{}'. Reason: {}".format(cog, type(e).__name__))
+                return
+        else:
+            await ctx.send("No cog called '{}'.".format(cog))
+            return
+
+        data = IO.read_settings_as_json()
+        if data is None:
+            await ctx.send(IO.settings_fail_read)
+            return
+
+        data['cogs'][cog] = True
+
+        if IO.write_settings(data) is False:
+            await ctx.send(IO.settings_fail_write)
+            return
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def unload(self, ctx, *, cog: str):
+        """Unload a cog"""
+        ext_list = self.extensions
+        cog_list = []
+        for cogs in ext_list:
+            cog_list.append(cogs)
+
+        l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
+
+        if l_cog_name in cog_list:
+            try:
+                self.unload_extension(l_cog_name)
+                await ctx.send("Successfully unloaded cog '{}'.".format(cog))
+            except Exception as e:
+                await ctx.say("Failed to unload cog '{}'. Reason: {}".format(cog, type(e).__name__))
+                return
+        else:
+            await ctx.send("No loaded cog called '{}'.".format(cog))
+            return
+
+        data = IO.read_settings_as_json()
+        if data is None:
+            await ctx.send(IO.settings_fail_read)
+            return
+        data['cogs'][cog] = False
+        if IO.write_settings(data) is False:
+            await ctx.send(IO.settings_fail_write)
+            return
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def reload(self, ctx, *, cog: str):
+        """Reload a cog"""
+        ext_list = self.extensions
+        cog_list = [cog for cog in ext_list]
+
+        cog_n = "cogs.{}".format(cog)
+        if cog_n in cog_list:
+            try:
+                self.unload_extension(cog_n)
+            except Exception as e:
+                Logger.write(e)
+                await ctx.send("Failed to unload cog '{}'".format(cog))
+                return
+        else:
+            await ctx.send("No loaded cogs called '{}'".format(cog))
+            return
+
+        try:
+            self.load_extension(cog_n)
+            await ctx.send("Successfully reloaded cog '{}'".format(cog))
+        except Exception as e:
+            Logger.write(e)
+            await ctx.send("Failed to reload cog '{}'")
+            return
+
+    @commands.command(hidden=True)
+    @perms.is_dev()
+    async def cogs(self, ctx):
+        """List loaded and unloaded cogs"""
+        ext_list = self.extensions
+        loaded = []
+        unloaded = []
+        for cog in ext_list:
+            loaded.append(str(cog).replace("cogs.", ""))
+
+        for cog_f in os.listdir(os.path.join(self.base_directory, "cogs")):
+            if cog_f.endswith(".py"):
+                if cog_f.replace(".py", "") not in loaded:
+                    unloaded.append(cog_f.replace(".py", ""))
+
+        await ctx.send("```diff\n"
+                       "+ Loaded Cogs:\n{}\n\n"
+                       "- Unloaded Cogs:\n{}"
+                       "```"
+                       "".format(", ".join(sorted(loaded)),
+                                 ", ".join(sorted(unloaded))))
 
 
 if __name__ == '__main__':

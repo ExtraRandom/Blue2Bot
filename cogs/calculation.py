@@ -9,24 +9,27 @@ class Calculation:
         self.bot = bot
 
     @commands.command(aliases=["temp"])
-    async def temperature(self, degrees: float):
+    async def temperature(self, ctx, degrees: float):
         """Convert between Celsius and Fahrenheit"""
+        chan = ctx.message.channel
         to_fahrenheit = (degrees * 1.8) + 32
         to_celsius = (degrees - 32) / 1.8
 
-        await self.bot.say("{0}°C Celsius to Fahrenheit: {1:.2f}°F\n"
+        await chan.send("{0}°C Celsius to Fahrenheit: {1:.2f}°F\n"
                            "{0}°F Fahrenheit to Celsius: {2:.2f}°C"
                            "".format(degrees, to_fahrenheit, to_celsius))
 
     @commands.command()
-    async def dltime(self, size_in_gigabytes: float):
+    async def dltime(self, ctx, size_in_gigabytes: float):
         """Calculate time to download given file size (in GB's)
 
         500 MegaBytes (MB) = 0.5 GigaBytes (GB)
         """
 
+        chan = ctx.message.channel
+
         if size_in_gigabytes >= 1000000:
-            await self.bot.say("{} GigaBytes?! You'll be dead before that finishes downloading!")
+            await chan.send("{} GigaBytes?! You'll be dead before that finishes downloading!")
             return
 
         speeds = {'3MB/s (24Mb/s)': 24,
@@ -75,10 +78,10 @@ class Calculation:
 
                 except Exception as e:
                     Logger.write(e)
-                    await self.bot.say("An error occurred whilst calculating.")
+                    await chan.send("An error occurred whilst calculating.")
                     return
 
-        await self.bot.say(embed=embed)
+        await chan.send(embed=embed)
 
 
 def secs_to_days(seconds):

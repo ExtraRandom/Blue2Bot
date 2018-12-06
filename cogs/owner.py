@@ -10,155 +10,42 @@ class Owner:
 
     @commands.command(hidden=True)
     @perms.is_dev()
-    async def load(self, *, cog: str):
-        """Load a cog"""
-        cog_list = []
-        for c_file in os.listdir(os.path.join(self.bot.base_directory, "cogs")):
-            if c_file.endswith(".py"):
-                cog_list.append("cogs.{}".format(c_file.replace(".py", "")))
-
-        l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
-
-        if l_cog_name in cog_list:
-            try:
-                self.bot.load_extension(l_cog_name)
-                await self.bot.say("Successfully loaded cog '{}'.".format(cog))
-            except Exception as e:
-                Logger.write(e)
-                await self.bot.say("Failed to load cog '{}'. Reason: {}".format(cog, type(e).__name__))
-                return
-        else:
-            await self.bot.say("No cog called '{}'.".format(cog))
-            return
-
-        data = IO.read_settings_as_json()
-        if data is None:
-            await self.bot.say(IO.settings_fail_read)
-            return
-
-        data['cogs'][cog] = True
-
-        if IO.write_settings(data) is False:
-            await self.bot.say(IO.settings_fail_write)
-            return
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def unload(self, *, cog: str):
-        """Unload a cog"""
-        ext_list = self.bot.extensions
-        cog_list = []
-        for cogs in ext_list:
-            cog_list.append(cogs)
-
-        l_cog_name = "cogs.{}".format(cog)  # print(cog, cog_name, cog_list)
-
-        if l_cog_name in cog_list:
-            try:
-                self.bot.unload_extension(l_cog_name)
-                await self.bot.say("Successfully unloaded cog '{}'.".format(cog))
-            except Exception as e:
-                await self.bot.say("Failed to unload cog '{}'. Reason: {}".format(cog, type(e).__name__))
-                return
-        else:
-            await self.bot.say("No loaded cog called '{}'.".format(cog))
-            return
-
-        data = IO.read_settings_as_json()
-        if data is None:
-            await self.bot.say(IO.settings_fail_read)
-            return
-        data['cogs'][cog] = False
-        if IO.write_settings(data) is False:
-            await self.bot.say(IO.settings_fail_write)
-            return
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def reload(self, *, cog: str):
-        """Reload a cog"""
-        ext_list = self.bot.extensions
-        cog_list = [cog for cog in ext_list]
-
-        cog_n = "cogs.{}".format(cog)
-        if cog_n in cog_list:
-            try:
-                self.bot.unload_extension(cog_n)
-            except Exception as e:
-                Logger.write(e)
-                await self.bot.say("Failed to unload cog '{}'".format(cog))
-                return
-        else:
-            await self.bot.say("No loaded cogs called '{}'".format(cog))
-            return
-
-        try:
-            self.bot.load_extension(cog_n)
-            await self.bot.say("Successfully reloaded cog '{}'".format(cog))
-        except Exception as e:
-            Logger.write(e)
-            await self.bot.say("Failed to reload cog '{}'")
-            return
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def shutdown(self):
+    async def shutdown(self, ctx):
         """Shutdown the bot"""
         print("Shutting Down")
-        await self.bot.say("Shutting down...")
+        await ctx.send("Shutting down...")
         await self.bot.logout()
 
+    # TODO update to work with 3.7
+
+    """
     @commands.command(hidden=True)
     @perms.is_dev()
-    async def cogs(self):
-        """List loaded and unloaded cogs"""
-        ext_list = self.bot.extensions
-        loaded = []
-        unloaded = []
-        for cog in ext_list:
-            loaded.append(str(cog).replace("cogs.", ""))
-
-        for cog_f in os.listdir(os.path.join(self.bot.base_directory, "cogs")):
-            if cog_f.endswith(".py"):
-                if cog_f.replace(".py", "") not in loaded:
-                    unloaded.append(cog_f.replace(".py", ""))
-
-        await self.bot.say("```diff\n"
-                           "+ Loaded Cogs:\n{}\n\n"
-                           "- Unloaded Cogs:\n{}"
-                           "```"
-                           "".format(", ".join(sorted(loaded)),
-                                     ", ".join(sorted(unloaded))))
-
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def avatar(self, image: str):
-        """Change the bot's avatar"""
+    async def avatar(self, ctx, image: str):
+        ""Change the bot's avatar""
         try:
             with open(os.path.join(self.bot.base_directory, image), "rb") as avatar:
                 f = avatar.read()
                 image_bytes = bytearray(f)
-                await self.bot.edit_profile(avatar=image_bytes)
+                await self.bot.edit(avatar=image_bytes)
         except Exception as e:
-            await self.bot.say("Failed to change avatar")
+            Logger.write(e)
+            await ctx.send("Failed to change avatar")
+    """
 
-    @commands.command(hidden=True, pass_context=True)
+    @commands.command()
     @perms.is_dev()
-    async def purge(self, ctx, number):
-        """Purge a given number of messages"""
-        # https://stackoverflow.com/questions/43465082/python-discord-py-delete-all-messages-in-a-text-channel
-        msgs = []
-        number = int(number)
+    async def purge(self, ctx, number: int):
+        """Purge given number of messages in the current channel"""
+        m_list = []
 
-        if number == 1:
-            number = 2
-        elif number >= 100:
-            number = 90
+        if number > 100:
+            number = 100
 
-        async for x in self.bot.logs_from(ctx.message.channel, limit=number+1):
-            msgs.append(x)
-        await self.bot.delete_messages(msgs)
-        await self.bot.say("Deleted {} messages in {}".format(number, ctx.message.channel))
+        async for message in ctx.channel.history(limit=number+1):
+            m_list.append(message)
+        await ctx.channel.delete_messages(m_list)
+        await ctx.send("Purged {} messages in {}".format(number, ctx.channel))
 
 
 def setup(bot):

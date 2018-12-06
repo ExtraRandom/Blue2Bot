@@ -11,7 +11,7 @@ def is_server_owner():
 
 def is_dev():
     def predicate(ctx):
-        return ctx.message.author.id == "92562410493202432"
+        return ctx.message.author.id == 92562410493202432
 
     return commands.check(predicate)
 
@@ -60,5 +60,6 @@ def mod_or_permissions(**perms):
 def admin_or_permissions(**perms):
     def predicate(ctx):
         return role_or_permissions(ctx, lambda r: r.name == 'Bot Admin', **perms)
-
     return commands.check(predicate)
+
+

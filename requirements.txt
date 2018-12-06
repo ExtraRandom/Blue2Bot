@@ -1,5 +1,3 @@
 git+https://github.com/Rapptz/discord.py@rewrite
-# git+git://github.com/Rapptz/discord.py.git#egg=discord.py
 git+git://github.com/ExtraRandom/Game_Stores_API
 requests
-Pillow

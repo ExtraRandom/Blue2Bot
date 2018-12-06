@@ -22,7 +22,7 @@ class BlueBot(commands.Bot):
         self.add_command(self.load)
         self.add_command(self.unload)
         self.add_command(self.reload)
-        self.add_command(self.cogs)
+        self.add_command(self.cog_list)
 
     async def on_ready(self):
         login_time = datetime.now()
@@ -310,9 +310,9 @@ class BlueBot(commands.Bot):
             await ctx.send("Failed to reload cog '{}'")
             return
 
-    @commands.command(hidden=True)
+    @commands.command(hidden=True, name="cogs")
     @perms.is_dev()
-    async def cogs(self, ctx):
+    async def cog_list(self, ctx):
         """List loaded and unloaded cogs"""
         ext_list = self.extensions
         loaded = []

@@ -313,7 +313,7 @@ class BlueBot(commands.Bot):
     @commands.command(hidden=True, name="cogs")
     @perms.is_dev()
     async def cog_list(self, ctx):
-        """List loaded and unloaded cogs"""
+        """List all loaded and unloaded cogs"""
         ext_list = self.extensions
         loaded = []
         unloaded = []

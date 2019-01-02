@@ -5,6 +5,10 @@ from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
 from cogs.utils import IO, simplify, fortnite_api as fn_api
 from cogs.utils.logger import Logger
+from PIL import Image, ImageDraw, ImageFont
+import requests
+from io import BytesIO
+import os
 
 
 class Games:
@@ -166,7 +170,7 @@ class Games:
             Logger.write(e)
             await msg.edit("PS3 Game Search Failed")
 
-    @commands.group(pass_context=True, aliases=["fn"])
+    @commands.group(aliases=["fn"])
     async def fortnite(self, ctx):
         """Use '?help fortnite' to see subcommands"""
         if ctx.invoked_subcommand is None:
@@ -214,32 +218,67 @@ class Games:
 
     @fortnite.command(aliases=["s", "shop", "i", "items", "item"])
     async def store(self, ctx):
+        """Get the current item shop"""
+
+        # TODO make sure this works with varying item amounts (will have to wait for store change)
+        vbucks_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images')
+
         data = fn_api.get_store()
 
-        if data is None:
-            await ctx.send("Couldn't reach Fortnite API")
-            return
+        num_of_items = len(data[0]['items'])
 
-        date = data[0]["date"]
+        base_w = 512
+        base_h = 512
 
-        emb = discord.Embed(title="Fortnite Store - {}".format(date),
-                            colour=discord.Colour.dark_blue())
-        # emb.set_footer(text="Version of this command with Images coming soon")
+        current_w = 0
+        current_h = 0
 
-        for item in data[0]["items"]:
-            name = item['name']
+        full_rows, half_rows = divmod(num_of_items, 5)
+        rows = full_rows + half_rows
+
+        calc_h = base_h * rows
+        calc_w = base_w * 5
+
+        STORE_IMAGE = Image.new("RGBA", (calc_w, calc_h), (255, 0, 0, 0))
+
+        for item in data[0]['items']:
+            img_url = item['item']['images']['background']
             cost = item['cost']
-            # img = item['item']['images']['background']
-            item_type = str(item['item']['type']).capitalize()
-            rarity = str(item['item']['rarity']).capitalize()
 
-            emb.add_field(name="{}".format(name),
-                          value="Cost: {}\n"
-                                "Type: {}\n"
-                                "Rarity: {}\n"
-                                "".format(cost, item_type, rarity))
+            res = requests.get(img_url)
+            ITEM_IMAGE = Image.open(BytesIO(res.content)).convert("RGBA")
 
-        await ctx.send(embed=emb)
+            if int(cost) == 2000:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "2000vbucks.png"))
+            elif int(cost) == 1500:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "1500vbucks.png"))
+            elif int(cost) == 1200:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "1200vbucks.png"))
+            elif int(cost) == 800:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "800vbucks.png"))
+            elif int(cost) == 500:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "500vbucks.png"))
+            elif int(cost) == 200:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "200vbucks.png"))
+            else:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "unknownvbucks.png"))
+
+            # ITEM_IMAGE.paste(COST_IMAGE)
+            # COMPLETE_ITEM_IMAGE = Image.alpha_composite(ITEM_IMAGE, COST_IMAGE)
+            ITEM_IMAGE.paste(COST_IMAGE, COST_IMAGE)
+            # ITEM_IMAGE.show()
+
+            STORE_IMAGE.paste(ITEM_IMAGE, (current_w, current_h), ITEM_IMAGE)
+
+            current_w = current_w + 512
+            if current_w >= calc_w:
+                current_w = 0
+                current_h = current_h + 512
+
+        final_img = os.path.join(vbucks_folder, "STORE.png")
+        STORE_IMAGE.save(final_img)
+        img_file = discord.File(final_img)
+        await ctx.send(file=img_file)
 
 
 def playstation_search(platform, term):

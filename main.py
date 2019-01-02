@@ -1,7 +1,6 @@
-import discord
+import discord, re, os
 from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
-import os
 from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
 
@@ -52,7 +51,8 @@ class BlueBot(commands.Bot):
     async def on_command_error(self, ctx, error):
         channel = ctx.message.channel
 
-        if error.__cause__ is not None and str(error.__cause__).startswith("could not convert"):
+        if error.__cause__ is not None and (str(error.__cause__).startswith("could not convert")
+                                            or str(error).startswith("Converting")):
             # workaround for commands.ConversionError seemingly not picking up this error
             # maybe change to be state that issue
             formatter = commands.formatter.HelpFormatter()
@@ -180,7 +180,7 @@ class BlueBot(commands.Bot):
                 try:
                     should_load = s_data['cogs'][folder_cog]
                 except KeyError:
-                    Logger.write("New Cog '{}'".format(folder_cog))
+                    Logger.write_and_print("New Cog '{}'".format(folder_cog))
                     s_data['cogs'][folder_cog] = True
                     should_load = True
 

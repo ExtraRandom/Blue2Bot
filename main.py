@@ -72,7 +72,7 @@ class BlueBot(commands.Bot):
             await channel.send("You do not have permission to use that command!")
         elif isinstance(error, commands.CommandOnCooldown):
             await channel.send("This command is currently on cooldown. {}" 
-                                             "".format(str(error).split(". ")[1]))
+                               "".format(str(error).split(". ")[1]))
         else:
             cmd = str(ctx.command)
             full_cmd = ctx.message.content
@@ -120,7 +120,6 @@ class BlueBot(commands.Bot):
                 "keys": {
                     "token": None,
                     "itad-api-key": None,
-                    "fixer-io-key": None,
                     "ftn-api-key": None,
                     "trn-api-key": None
                 },

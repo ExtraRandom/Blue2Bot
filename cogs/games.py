@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 from io import BytesIO
 import os
+import time
 
 
 class Games:
@@ -220,10 +221,12 @@ class Games:
     async def store(self, ctx):
         """Get the current item shop"""
 
-        # TODO make sure this works with varying item amounts (will have to wait for store change)
-        vbucks_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images')
-
         data = fn_api.get_store()
+
+        if data is None:
+            await ctx.send("Couldn't reach Fortnite API")
+
+        fetch_msg = await ctx.send("Fetching Fortnite Store Data from API")
 
         num_of_items = len(data[0]['items'])
 
@@ -233,13 +236,15 @@ class Games:
         current_w = 0
         current_h = 0
 
-        full_rows, half_rows = divmod(num_of_items, 5)
-        rows = full_rows + half_rows
+        full_rows, left_over = divmod(num_of_items, 5)
+        rows = full_rows + 1
 
         calc_h = base_h * rows
         calc_w = base_w * 5
 
         STORE_IMAGE = Image.new("RGBA", (calc_w, calc_h), (255, 0, 0, 0))
+
+        vbucks_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images', 'fortnite')
 
         for item in data[0]['items']:
             img_url = item['item']['images']['background']
@@ -263,11 +268,7 @@ class Games:
             else:
                 COST_IMAGE = Image.open(os.path.join(vbucks_folder, "unknownvbucks.png"))
 
-            # ITEM_IMAGE.paste(COST_IMAGE)
-            # COMPLETE_ITEM_IMAGE = Image.alpha_composite(ITEM_IMAGE, COST_IMAGE)
             ITEM_IMAGE.paste(COST_IMAGE, COST_IMAGE)
-            # ITEM_IMAGE.show()
-
             STORE_IMAGE.paste(ITEM_IMAGE, (current_w, current_h), ITEM_IMAGE)
 
             current_w = current_w + 512
@@ -278,7 +279,56 @@ class Games:
         final_img = os.path.join(vbucks_folder, "STORE.png")
         STORE_IMAGE.save(final_img)
         img_file = discord.File(final_img)
+
         await ctx.send(file=img_file)
+        await fetch_msg.delete()
+
+    @fortnite.command()
+    async def upcoming(self, ctx):
+        """Get known upcoming items"""
+        data = fn_api.get_upcoming()
+
+        if data is None:
+            await ctx.send("Couldn't reach Fortnite API")
+
+        fetch_msg = await ctx.send("Fetching Fortnite Upcoming Items Data from API")
+
+        num_of_items = len(data[0]['items'])
+
+        base_w = 512
+        base_h = 512
+
+        current_w = 0
+        current_h = 0
+
+        full_rows, left_over = divmod(num_of_items, 5)
+        rows = full_rows + 1
+
+        calc_h = base_h * rows
+        calc_w = base_w * 5
+
+        UPCOMING_IMAGE = Image.new("RGBA", (calc_w, calc_h), (255, 0, 0, 0))
+        final_img_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images', 'fortnite')
+
+        for item in data[0]['items']:
+            img_url = item['item']['images']['information']
+
+            res = requests.get(img_url)
+            ITEM_IMAGE = Image.open(BytesIO(res.content)).convert("RGBA")
+
+            UPCOMING_IMAGE.paste(ITEM_IMAGE, (current_w, current_h), ITEM_IMAGE)
+
+            current_w = current_w + 512
+            if current_w >= calc_w:
+                current_w = 0
+                current_h = current_h + 512
+
+        final_img = os.path.join(final_img_folder, "UPCOMING.png")
+        UPCOMING_IMAGE.save(final_img)
+        img_file = discord.File(final_img)
+
+        await ctx.send(file=img_file)
+        await fetch_msg.delete()
 
 
 def playstation_search(platform, term):

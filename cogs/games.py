@@ -3,13 +3,12 @@ from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
-from cogs.utils import IO, simplify, fortnite_api as fn_api
+from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 import requests
 from io import BytesIO
 import os
-import time
 
 
 class Games:
@@ -283,7 +282,7 @@ class Games:
         await ctx.send(file=img_file)
         await fetch_msg.delete()
 
-    @fortnite.command()
+    @fortnite.command(aliases=["u", "upc", "leaked", "l"])
     async def upcoming(self, ctx):
         """Get known upcoming items"""
         data = fn_api.get_upcoming()

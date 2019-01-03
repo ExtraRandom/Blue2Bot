@@ -16,21 +16,18 @@ class Owner:
         await ctx.send("Shutting down...")
         await self.bot.logout()
 
-    # TODO update to work with 3.7
-    """
     @commands.command(hidden=True)
     @perms.is_dev()
     async def avatar(self, ctx, image: str):
-        ""Change the bot's avatar""
+        """"Change the bot's avatar"""
         try:
             with open(os.path.join(self.bot.base_directory, image), "rb") as avatar:
                 f = avatar.read()
                 image_bytes = bytearray(f)
-                await self.bot.edit(avatar=image_bytes)
+                await self.bot.user.edit(avatar=image_bytes)
         except Exception as e:
-            Logger.write(e)
             await ctx.send("Failed to change avatar")
-    """
+            print(e)
 
     @commands.command(hidden=True)
     @perms.is_dev()

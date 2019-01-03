@@ -1,4 +1,4 @@
-import discord, re, os
+import discord, os
 from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
 from cogs.utils import IO, perms

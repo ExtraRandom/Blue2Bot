@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-from cogs.utils import IO
 import traceback
 
 

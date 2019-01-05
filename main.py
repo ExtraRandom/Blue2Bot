@@ -120,7 +120,6 @@ class BlueBot(commands.Bot):
                 "keys": {
                     "token": None,
                     "itad-api-key": None,
-                    "ftn-api-key": None,
                     "trn-api-key": None
                 },
                 "cogs": {},
@@ -160,6 +159,9 @@ class BlueBot(commands.Bot):
         """First time run check"""
         if os.path.isfile(IO.settings_file_path) is False:
             Logger.write_and_print("First Time Run")
+            configs_f = os.path.join(self.base_directory, "configs")
+            if not os.path.exists(configs_f):
+                os.mkdir(configs_f)
             first_time = True
 
         else:
@@ -319,9 +321,9 @@ class BlueBot(commands.Bot):
         for cog in ext_list:
             loaded.append(str(cog).replace("cogs.", ""))
 
-        for cog_f in os.listdir(os.path.join(self.base_directory, "cogs")):
-            if cog_f.endswith(".py"):
-                if cog_f.replace(".py", "") not in loaded:
+        cogs_in_folder = self.get_cogs_in_folder()
+        for cog_f in cogs_in_folder:
+                if cog_f not in loaded:
                     unloaded.append(cog_f.replace(".py", ""))
 
         await ctx.send("```diff\n"

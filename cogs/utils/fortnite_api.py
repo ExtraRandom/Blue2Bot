@@ -120,8 +120,7 @@ def __file_write(filepath, json_obj):
 def __get_data_from_url(url_end, payload):
     """Get data from API using post request"""
     res = requests.post(url=(url_base+url_end),
-                        data=payload,
-                        headers={"Authorization": __read_api_key_from_file()})
+                        data=payload)  # ,headers={"Authorization": __read_api_key_from_file()})
     if res.status_code == requests.codes.ok:
         return res.text
     else:
@@ -130,6 +129,7 @@ def __get_data_from_url(url_end, payload):
 
 def __read_api_key_from_file():
     """Return API Key read in from file"""
+    # NO LONGER REQUIRED
     s_data = IO.read_settings_as_json()
     if s_data is None:
         return ""

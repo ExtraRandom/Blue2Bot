@@ -67,7 +67,7 @@ class Owner:
         except Exception as e:
             await ctx.send("Error getting bot uptime. Reason: {}".format(type(e).__name__))
 
-    @commands.command(aliases=["version", "update"])
+    @commands.command(aliases=["version", "update", "cl"])
     async def changelog(self, ctx):
         """See what was changed in the last few updates"""
         if not os.path.isdir(os.path.join(self.bot.base_directory, ".git")):
@@ -88,7 +88,6 @@ class Owner:
                              value="{}\n".format(changed.replace(" [", "\n[")))
 
         await ctx.send(embed=cl)
-
 
 
 def setup(bot):

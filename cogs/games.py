@@ -61,7 +61,7 @@ class Games:
 
     @commands.command()
     async def itad(self, ctx, *, search_term: str):
-        """Search for games on ITAD.com using Steam App ID's"""
+        """Search for games on ITAD.com (Steam Games Only)"""
         msg = await ctx.send(self.fetching)
 
         results = Steam.search_by_name(Steam.format_search(search_term))
@@ -236,7 +236,10 @@ class Games:
         current_h = 0
 
         full_rows, left_over = divmod(num_of_items, 5)
-        rows = full_rows + 1
+        if left_over >= 1:
+            rows = full_rows + 1
+        else:
+            rows = full_rows
 
         calc_h = base_h * rows
         calc_w = base_w * 5
@@ -301,7 +304,10 @@ class Games:
         current_h = 0
 
         full_rows, left_over = divmod(num_of_items, 5)
-        rows = full_rows + 1
+        if left_over >= 1:
+            rows = full_rows + 1
+        else:
+            rows = full_rows
 
         calc_h = base_h * rows
         calc_w = base_w * 5

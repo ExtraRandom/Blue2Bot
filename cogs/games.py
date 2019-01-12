@@ -265,6 +265,8 @@ class Games:
                 COST_IMAGE = Image.open(os.path.join(vbucks_folder, "800vbucks.png"))
             elif int(cost) == 500:
                 COST_IMAGE = Image.open(os.path.join(vbucks_folder, "500vbucks.png"))
+            elif int(cost) == 300:
+                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "300vbucks.png"))
             elif int(cost) == 200:
                 COST_IMAGE = Image.open(os.path.join(vbucks_folder, "200vbucks.png"))
             else:

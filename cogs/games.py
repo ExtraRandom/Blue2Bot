@@ -255,20 +255,10 @@ class Games:
             res = requests.get(img_url)
             ITEM_IMAGE = Image.open(BytesIO(res.content)).convert("RGBA")
 
-            if int(cost) == 2000:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "2000vbucks.png"))
-            elif int(cost) == 1500:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "1500vbucks.png"))
-            elif int(cost) == 1200:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "1200vbucks.png"))
-            elif int(cost) == 800:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "800vbucks.png"))
-            elif int(cost) == 500:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "500vbucks.png"))
-            elif int(cost) == 300:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "300vbucks.png"))
-            elif int(cost) == 200:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "200vbucks.png"))
+            cost_img_loc = os.path.join(vbucks_folder, "{}vbucks.png".format(cost))
+
+            if os.path.exists(cost_img_loc):
+                COST_IMAGE = Image.open(cost_img_loc)
             else:
                 COST_IMAGE = Image.open(os.path.join(vbucks_folder, "unknownvbucks.png"))
 

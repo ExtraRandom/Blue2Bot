@@ -9,6 +9,8 @@ from PIL import Image
 import requests
 from io import BytesIO
 import os
+from mcstatus import MinecraftServer
+from re import sub
 
 
 class Games:
@@ -326,6 +328,72 @@ class Games:
 
         await ctx.send(file=img_file)
         await fetch_msg.delete()
+
+    @commands.command(name="mc")
+    async def minecraft_ip(self, ctx, ip: str):
+        """Get Status of Minecraft Servers"""
+        # From https://github.com/ExtraRandom/Red-DiscordBot/blob/develop/cogs/games.py
+        try:
+            server = MinecraftServer.lookup(ip)
+            status = server.status()
+            data = status.raw  # print(data)
+            ver = data['version']['name']
+            s_desc = "N/A"
+            try:
+                s_desc = data['description']['text']
+            except TypeError:
+                s_desc = data['description']
+
+            desc_filter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "k", "l",
+                           "m", "n", "o", "r"]
+
+            for item in desc_filter:
+                s_desc = str(s_desc).replace("§{}".format(item), "")
+
+            s_desc = sub(' +', ' ', s_desc)  # not sure if this is actually needed
+
+            player_count = int(data['players']['online'])
+            player_limit = int(data['players']['max'])
+
+            if player_count > 1000:
+                try_players = False
+            else:
+                try_players = True
+
+            players = ""
+
+            if try_players:
+                try:
+                    for player in data['players']['sample']:
+                        players += "{}, ".format(player['name'])
+                    players = players[:-2]  # Remove final comma and the space after it
+                except Exception:
+                    players = "None"
+            else:
+                players = "N/A"
+
+            embed = discord.Embed(title="Status of {}".format(ip),
+                                  colour=discord.Colour.green())
+
+            embed.add_field(name="Info", value="Version Info: {}\n\n"
+                                               "Player Count/Limit: **{}**/**{}**\n"
+                                               "Player Sample: {}\n\n"
+                                               "Description: {}".format(ver, player_count, player_limit, players,
+                                                                        s_desc))
+
+            await ctx.send(embed=embed)
+
+        except ValueError as e:
+            await ctx.send("Error Occured - Check IP is correct - Value Error")
+            # log.warn(e)
+
+        except ConnectionRefusedError as e:
+            await ctx.send("Error Occured - Target Refused Connection")
+            # log.warn(e)
+
+        except Exception as e:
+            await ctx.send("Error Occured - Server didn't respond")
+            # log.warn(e)
 
 
 def playstation_search(platform, term):

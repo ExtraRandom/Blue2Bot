@@ -3,6 +3,7 @@ from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
+from GameStoresAPI.origin import Origin
 from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
@@ -171,6 +172,37 @@ class Games:
         except Exception as e:
             Logger.write(e)
             await msg.edit("PS3 Game Search Failed")
+
+    @commands.command(name="origin")
+    async def origin_search(self, ctx, *, search_term: str):
+        msg = await ctx.send(self.fetching)
+        data = Origin.search_by_name(search_term)
+        url_base = "https://www.origin.com/gbr/en-us/store"
+
+        count = 0
+        limit = 5
+
+        embed = discord.Embed(title="Origin Search Results for '{}'".format(search_term),
+                              colour=discord.Colour.orange())
+
+        if len(data) > 0:
+            for item in data:
+                embed.add_field(name=item['name'],
+                                value="Description: {}\n"
+                                      "Price: {} {}\n"
+                                      "Type: {}\n"
+                                      "URL: {}{}"
+                                      "".format(item['desc'], item['price'], item['currency'],
+                                                item['type'], url_base, item['url_end']))
+                count += 1
+                if count == limit:
+                    break
+                # print("item name ", item['name'], item['type'], item['price'])
+        else:
+            await msg.edit(content="No Results for Origin Search '{}'".format(search_term))
+            return
+
+        await msg.edit(embed=embed)
 
     @commands.group(aliases=["fn"])
     async def fortnite(self, ctx):

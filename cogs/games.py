@@ -3,7 +3,7 @@ from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
-from GameStoresAPI.origin import Origin
+# from GameStoresAPI.origin import Origin
 from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
@@ -126,23 +126,35 @@ class Games:
 
             try:
                 cb_price = current_best[c_plain]["price"]
+                if cb_price == 0:
+                    cb_price = "Free or Unavailable"
+                else:
+                    cb_price = "£{}".format(cb_price)
                 cb_url = current_best[c_plain]["url"]
                 cb_store = current_best[c_plain]["store"]
 
-                hb_price = historical_best[c_plain]["price"]
-                hb_date = historical_best[c_plain]["date"]
-                hb_store = historical_best[c_plain]["store"]
+                try:
+                    hb_price = historical_best[c_plain]["price"]
+                    hb_date = historical_best[c_plain]["date"]
+                    hb_store = historical_best[c_plain]["store"]
+                    embed.add_field(name="{}".format(title),
+                                    value="**Current Best Price**\n"
+                                          "Price: {}\n"
+                                          "Shop: {}\n"
+                                          "URL: {}\n"
+                                          "**Historical Best Price**\n"
+                                          "Price: £{}\n"
+                                          "Shop: {}\n"
+                                          "When: {}"
+                                          "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
 
-                embed.add_field(name="{}".format(title),
-                                value="**Current Best Price**\n"
-                                      "Price: £{}\n"
-                                      "Shop: {}\n"
-                                      "URL: {}\n"
-                                      "**Historical Best Price**\n"
-                                      "Price: £{}\n"
-                                      "Shop: {}\n"
-                                      "When: {}"
-                                      "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
+                except KeyError:
+                    embed.add_field(name="{}".format(title),
+                                    value="**Current Best Price**\n"
+                                          "Price: {}\n"
+                                          "Shop: {}\n"
+                                          "URL: {}\n"
+                                          "".format(cb_price, cb_store, cb_url))
 
             except Exception as e:
                 Logger.write(e)

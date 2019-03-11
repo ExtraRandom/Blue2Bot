@@ -173,6 +173,7 @@ class Games:
             Logger.write(e)
             await msg.edit("PS3 Game Search Failed")
 
+    """
     @commands.command(name="origin")
     async def origin_search(self, ctx, *, search_term: str):
         msg = await ctx.send(self.fetching)
@@ -203,6 +204,7 @@ class Games:
             return
 
         await msg.edit(embed=embed)
+    """
 
     @commands.group(aliases=["fn"])
     async def fortnite(self, ctx):

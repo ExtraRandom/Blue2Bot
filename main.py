@@ -3,6 +3,7 @@ from discord.ext import commands  # from discord.utils import get
 from datetime import datetime
 from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
+import traceback, re
 
 
 def get_prefix(d_bot, message):
@@ -82,7 +83,49 @@ class BlueBot(commands.Bot):
                 s_cmd = cmd.split(" ")[0]
                 cog = self.get_command(s_cmd).cog_name
 
-            err_msg = "----------------------------------------------------------\n" \
+            try:
+                # actually useful error logging, similar to that of the Logger in utils
+                fmt_tb = traceback.format_exception(type(error), error, error.__traceback__)
+
+                print(error.__traceback__.tb_frame.f_code.co_filename)
+
+                ex_code = "N/A"
+                ex_line = "N/A"
+                ex_file = "N/A"
+
+                for line in fmt_tb:
+                    f_line = line.strip()
+                    if self.base_directory in f_line:
+                        # Make this less janky
+                        """
+                            This is quite janky because the exception that caused the error might not be the same 
+                            exception that we want to log. For example the raised exception could be raised by a command
+                            meaning the file, lines and such would be from the discord package rather than the cog
+                            containing the command that actually encountered an error. This janky code finds the 
+                            correct file, line and code that caused an error but is janky.
+                            Preferably fix me if you're bored in the future and read this me
+                        """
+                        ex_line = line.split("\n")[0].strip().split("line ")[1].split(",")[0]
+                        ex_code = line.split("\n")[1].strip()
+                        ex_file = re.findall('"([^"]*)"', line)[0]
+                        break
+
+                err_msg = "----------------------------------------------------------\n" \
+                          "An Error Occurred at {}\n" \
+                          "  Error: {}\n" \
+                          "    Cog: {}\n" \
+                          "Command: {} ({})\n" \
+                          "   File: {}\n" \
+                          "   Line: {}\n" \
+                          "   Code: {}\n" \
+                          "----------------------------------------------------------" \
+                          "".format(Logger.time_now(), error, cog, cmd, full_cmd, ex_file, ex_line, ex_code)
+                Logger.log_write(err_msg)
+
+            except Exception as e:
+                # Test the new error logging before removing this
+                err_msg = "----------------------------------------------------------\n" \
+                      "THIS IS THE OLD ERROR MESSAGE, THIS SHOULDN'T OCCUR" \
                       "An Error Occurred at {}\n" \
                       "Command: {} ({})\n" \
                       "    Cog: {}\n" \
@@ -90,7 +133,8 @@ class BlueBot(commands.Bot):
                       "   Args: {}\n" \
                       "----------------------------------------------------------" \
                       "".format(Logger.time_now(), cmd, full_cmd, cog, error, error.args)
-            Logger.log_write(err_msg)
+                Logger.log_write(err_msg)
+
             await channel.send("**Command Errored:**\n "
                                "{}".format(error))
 
@@ -120,7 +164,7 @@ class BlueBot(commands.Bot):
                 "keys": {
                     "token": None,
                     "itad-api-key": None,
-                    "trn-api-key": None
+                    "apex-api-key": None
                 },
                 "cogs": {},
                 "info": {

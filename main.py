@@ -87,7 +87,7 @@ class BlueBot(commands.Bot):
                 # actually useful error logging, similar to that of the Logger in utils
                 fmt_tb = traceback.format_exception(type(error), error, error.__traceback__)
 
-                print(error.__traceback__.tb_frame.f_code.co_filename)
+                # print(error.__traceback__.tb_frame.f_code.co_filename)
 
                 ex_code = "N/A"
                 ex_line = "N/A"

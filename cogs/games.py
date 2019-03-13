@@ -3,7 +3,7 @@ from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
-# from GameStoresAPI.origin import Origin
+from GameStoresAPI.origin import Origin
 from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
@@ -12,6 +12,7 @@ from io import BytesIO
 import os
 from mcstatus import MinecraftServer
 from re import sub
+import traceback
 
 
 class Games:
@@ -185,12 +186,21 @@ class Games:
             Logger.write(e)
             await msg.edit("PS3 Game Search Failed")
 
-    """
     @commands.command(name="origin")
     async def origin_search(self, ctx, *, search_term: str):
         msg = await ctx.send(self.fetching)
-        data = Origin.search_by_name(search_term)
+        try:
+            data = Origin.search_by_name(search_term)
+        except Exception as e:
+            Logger.write(traceback.format_exception(type(e), e, e.__traceback__))
+            await msg.edit(content="Failed to fetch data from Origin. Check log for more details.")
+            return
+
         url_base = "https://www.origin.com/gbr/en-us/store"
+
+        if data['success'] == False:
+            await msg.edit(content="Failed to fetch data from Origin")
+            return
 
         count = 0
         limit = 5
@@ -198,15 +208,25 @@ class Games:
         embed = discord.Embed(title="Origin Search Results for '{}'".format(search_term),
                               colour=discord.Colour.orange())
 
-        if len(data) > 0:
-            for item in data:
+        if len(data['results']) > 0:
+            for item in data['results']:
                 embed.add_field(name=item['name'],
                                 value="Description: {}\n"
                                       "Price: {} {}\n"
                                       "Type: {}\n"
-                                      "URL: {}{}"
                                       "".format(item['desc'], item['price'], item['currency'],
-                                                item['type'], url_base, item['url_end']))
+                                                item['type']))  # , url_base, item['url_end'])) # "URL: {}{}"
+                """
+
+                embed.add_field(name=item['name'],
+                                value="Description: {}\n"
+                                "Price: {} {}\n"
+                                "Type: {}\n"
+                                "URL: {}{}"
+                                "".format(item['desc'], item['price'], item['currency'],
+                                          item['type'], url_base, item['url_end']))
+                """
+
                 count += 1
                 if count == limit:
                     break
@@ -216,7 +236,6 @@ class Games:
             return
 
         await msg.edit(embed=embed)
-    """
 
     @commands.group(aliases=["fn"])
     async def fortnite(self, ctx):
@@ -468,7 +487,12 @@ def playstation_search(platform, term):
                             colour=discord.Colour.dark_blue(),
                             description="Search results from Playstation Store UK")
 
+    count = 0
+    limit = 5
     for game in search_data:
+        count += 1
+        if count == limit:
+            break
         results.add_field(name="{}\n".format(game['title']),
                           value="Price: {}\n"
                                 "Link: {}\n"

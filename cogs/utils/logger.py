@@ -102,6 +102,20 @@ class Logger:
                 return True
             else:
                 return False
+        elif isinstance(to_write, list):
+            string_for_msg = ""
+            for item in to_write:
+                string_for_msg = string_for_msg + item
+            write_string = "----------------------------------------------------------\n" \
+                           "Error - {} - LIST FORMAT\n" \
+                           "{}\n" \
+                           "----------------------------------------------------------" \
+                           "".format(Logger.time_now(), string_for_msg)
+            if Logger.log_write(write_string):
+                return True
+            else:
+                return False
+
         else:
             print("Logging for type '{}' currently not handled".format(type(to_write)))
             if Logger.log_write("{} - Tried to write data of type '{}' to log."

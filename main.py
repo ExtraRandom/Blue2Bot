@@ -52,6 +52,7 @@ class BlueBot(commands.Bot):
     async def on_command_error(self, ctx, error):
         channel = ctx.message.channel
 
+        # TODO remember why i added this and see if its still needed
         if error.__cause__ is not None and (str(error.__cause__).startswith("could not convert")
                                             or str(error).startswith("Converting")):
             # workaround for commands.ConversionError seemingly not picking up this error
@@ -86,8 +87,6 @@ class BlueBot(commands.Bot):
             try:
                 # actually useful error logging, similar to that of the Logger in utils
                 fmt_tb = traceback.format_exception(type(error), error, error.__traceback__)
-
-                # print(error.__traceback__.tb_frame.f_code.co_filename)
 
                 ex_code = "N/A"
                 ex_line = "N/A"
@@ -237,7 +236,7 @@ class BlueBot(commands.Bot):
                         Logger.write(exc)
                         s_data['cogs'][folder_cog] = False
 
-        """Get token"""
+        """Read in token"""
         if first_time is True:
             if IO.write_settings(s_data) is False:
                 raise Exception(IO.settings_fail_write)

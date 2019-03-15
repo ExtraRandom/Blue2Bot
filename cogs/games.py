@@ -28,6 +28,7 @@ class Games:
         results = Steam.search_by_name(Steam.format_search(search_term))
         if results == "Error":
             await msg.edit("An error occured whilst getting results. Try again later")
+            return
 
         len_res = len(results)
 
@@ -199,7 +200,8 @@ class Games:
         url_base = "https://www.origin.com/gbr/en-us/store"
 
         if data['success'] == False:
-            await msg.edit(content="Failed to fetch data from Origin")
+            await msg.edit(content="Failed to fetch data from Origin\n"
+                                   "Reason: {}".format(data['reason']))
             return
 
         count = 0
@@ -212,25 +214,15 @@ class Games:
             for item in data['results']:
                 embed.add_field(name=item['name'],
                                 value="Description: {}\n"
-                                      "Price: {} {}\n"
-                                      "Type: {}\n"
-                                      "".format(item['desc'], item['price'], item['currency'],
-                                                item['type']))  # , url_base, item['url_end'])) # "URL: {}{}"
-                """
-
-                embed.add_field(name=item['name'],
-                                value="Description: {}\n"
                                 "Price: {} {}\n"
                                 "Type: {}\n"
                                 "URL: {}{}"
                                 "".format(item['desc'], item['price'], item['currency'],
                                           item['type'], url_base, item['url_end']))
-                """
 
                 count += 1
                 if count == limit:
                     break
-                # print("item name ", item['name'], item['type'], item['price'])
         else:
             await msg.edit(content="No Results for Origin Search '{}'".format(search_term))
             return

@@ -22,7 +22,7 @@ class Games:
 
     @commands.command(name="steam")
     async def steam_search(self, ctx, *, search_term: str):
-        """Search for games on steam"""
+        """Search for games on Steam"""
         msg = await ctx.send(self.fetching)
 
         results = Steam.search_by_name(Steam.format_search(search_term))
@@ -65,8 +65,57 @@ class Games:
         await msg.edit(embed=embed)
 
     @commands.command()
-    async def itad(self, ctx, *, search_term: str):
-        """Search for games on ITAD.com (Steam Games Only)"""
+    async def itad(self, ctx, store: str, *, search_term: str):
+        """Search ITAD.com for games via store
+
+        Valid Stores: Steam, BattleNet, GOG, Origin and Uplay
+        """
+        msg = await ctx.send(self.fetching)
+
+        s_data = IO.read_settings_as_json()
+        if s_data['keys']['itad-api-key'] is None:
+            await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
+            return
+        else:
+            api_key = s_data['keys']['itad-api-key']
+
+        store = Itad.check_store_valid(store)
+        if store == "INVALID":
+            formatter = commands.formatter.HelpFormatter()
+            f_help = await formatter.format_help_for(ctx, ctx.command)
+            cmd_info = f_help[0]
+            await msg.edit(content="Invalid Store Specified")
+            await ctx.send(cmd_info)
+            return
+
+        else:
+            plains = Itad.search_plain_cache(api_key, store, search_term)
+            if plains is None:
+                await msg.edit(content="Error occurred whilst fetching data.")
+                return
+            else:
+                embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),
+                                      colour=discord.Colour.red())
+                results = Itad.get_multiple_current_best_price(api_key, plains)
+                count = 0
+                for result in results:
+                    count += 1
+                    if count == 5:
+                        break
+                    embed.add_field(name=result,
+                                    value="Price: {}\n"
+                                          "Store: {}\n"
+                                          "  URL: {}"
+                                          "".format(results[result]['price'], results[result]['store'],
+                                                    results[result]['url']))
+
+                await msg.edit(embed=embed)
+                return
+
+
+    @commands.command(hidden=True)
+    async def itad_old(self, ctx, *, search_term: str):
+        """OBSOLETE Search for games on ITAD.com (Steam Games Only)"""
         msg = await ctx.send(self.fetching)
 
         results = Steam.search_by_name(Steam.format_search(search_term))
@@ -102,7 +151,7 @@ class Games:
             return
 
         if s_data['keys']['itad-api-key'] is None:
-            await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
+            await msg.edit(content="ITAD API Key hasn't been set. Go to the settings file to set it now!")
             return
         else:
             api_key = s_data['keys']['itad-api-key']
@@ -189,6 +238,7 @@ class Games:
 
     @commands.command(name="origin")
     async def origin_search(self, ctx, *, search_term: str):
+        """Search for games on Origin"""
         msg = await ctx.send(self.fetching)
         try:
             data = Origin.search_by_name(search_term)

@@ -2,7 +2,6 @@ import discord, os
 from discord.ext import commands
 from cogs.utils import perms, IO
 from datetime import datetime, timedelta
-from GameStoresAPI.shared import Shared
 
 
 class Owner:
@@ -90,10 +89,6 @@ class Owner:
 
         await ctx.send(embed=cl)
 
-    @commands.command(hidden=True)
-    @perms.is_dev()
-    async def dbg_test(self, ctx):
-        await ctx.send(Shared.dbg_working_dir())
 
 def setup(bot):
     bot.add_cog(Owner(bot))

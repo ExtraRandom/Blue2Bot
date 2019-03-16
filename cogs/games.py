@@ -103,7 +103,7 @@ class Games:
                     if count == 5:
                         break
                     embed.add_field(name=result,
-                                    value="Price: {}\n"
+                                    value="Price: £{}\n"
                                           "Store: {}\n"
                                           "  URL: {}"
                                           "".format(results[result]['price'], results[result]['store'],

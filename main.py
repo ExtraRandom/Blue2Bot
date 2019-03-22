@@ -57,24 +57,21 @@ class BlueBot(commands.Bot):
                                             or str(error).startswith("Converting")):
             # workaround for commands.ConversionError seemingly not picking up this error
             # maybe change to be state that issue
-            formatter = commands.formatter.HelpFormatter()
-            f_help = await formatter.format_help_for(ctx, ctx.command)
-            cmd_info = f_help[0]
-            await channel.send(cmd_info)
+            await self.show_cmd_help(ctx)
             return
 
         if isinstance(error, commands.MissingRequiredArgument):
-            formatter = commands.formatter.HelpFormatter()
-            f_help = await formatter.format_help_for(ctx, ctx.command)
-            cmd_info = f_help[0]
-            await channel.send(cmd_info)
+            await self.show_cmd_help(ctx)
+            return
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CheckFailure):
             await channel.send("You do not have permission to use that command!")
+            return
         elif isinstance(error, commands.CommandOnCooldown):
             await channel.send("This command is currently on cooldown. {}" 
                                "".format(str(error).split(". ")[1]))
+            return
         else:
             cmd = str(ctx.command)
             full_cmd = ctx.message.content
@@ -136,6 +133,14 @@ class BlueBot(commands.Bot):
 
             await channel.send("**Command Errored:**\n "
                                "{}".format(error))
+            return
+
+    @staticmethod
+    async def show_cmd_help(ctx):
+        formatter = commands.formatter.HelpFormatter()
+        f_help = await formatter.format_help_for(ctx, ctx.command)
+        cmd_info = f_help[0]
+        await ctx.send(cmd_info)
 
     @staticmethod
     def get_cogs_in_folder():

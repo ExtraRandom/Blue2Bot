@@ -81,17 +81,17 @@ class Games:
 
         store = Itad.check_store_valid(store)
         if store == "INVALID":
-            formatter = commands.formatter.HelpFormatter()
-            f_help = await formatter.format_help_for(ctx, ctx.command)
-            cmd_info = f_help[0]
             await msg.edit(content="Invalid Store Specified")
-            await ctx.send(cmd_info)
+            await self.bot.show_cmd_help(ctx)
             return
-
         else:
             plains = Itad.search_plain_cache(api_key, store, search_term)
             if plains is None:
                 await msg.edit(content="Error occurred whilst fetching data.")
+                return
+            elif plains is 0:
+                await msg.edit(content="No results found. If your search term has numbers in it, "
+                                       "try replacing them with roman numerals. (i.e. 'far cry 5' would be 'far cry v'")
                 return
             else:
                 embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),
@@ -111,106 +111,6 @@ class Games:
 
                 await msg.edit(embed=embed)
                 return
-
-
-    @commands.command(hidden=True)
-    async def itad_old(self, ctx, *, search_term: str):
-        """OBSOLETE Search for games on ITAD.com (Steam Games Only)"""
-        msg = await ctx.send(self.fetching)
-
-        results = Steam.search_by_name(Steam.format_search(search_term))
-        len_res = len(results)
-
-        embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),
-                              colour=discord.Colour.red())
-
-        if results[0]['results'] is False:
-            embed.add_field(name="Search",
-                            value="No games found using term '{}'".format(search_term))
-            await msg.edit(embed=embed)
-            return
-
-        g_counter = 0
-        app_id_list = []
-        titles = []
-
-        for i in range(1, len_res):
-            g_counter += 1
-            if g_counter >= 4:
-                break
-            steam_url = results[i]['store_url']
-            steam_url_split = steam_url.split("/")
-            app_id = steam_url_split[3] + "/" + steam_url_split[4]
-            app_id_list.append(app_id)
-
-            titles.append(results[i]["title"])
-
-        s_data = IO.read_settings_as_json()
-        if s_data is None:
-            await msg.edit(IO.settings_fail_read)
-            return
-
-        if s_data['keys']['itad-api-key'] is None:
-            await msg.edit(content="ITAD API Key hasn't been set. Go to the settings file to set it now!")
-            return
-        else:
-            api_key = s_data['keys']['itad-api-key']
-
-        plains = Itad.get_multiple_plains_from_steam_appids(api_key, app_id_list)
-
-        titles_plains = []
-        for k in range(len(titles)):
-            titles_plains.append(
-                {
-                    "title": titles[k],
-                    "plain": plains[k]
-                }
-            )
-
-        current_best = Itad.get_multiple_current_best_price(api_key, plains)
-        historical_best = Itad.get_multiple_historical_best_price(api_key, plains)
-
-        for game in titles_plains:
-
-            c_plain = game["plain"]
-            title = game["title"]
-
-            try:
-                cb_price = current_best[c_plain]["price"]
-                if cb_price == 0:
-                    cb_price = "Free or Unavailable"
-                else:
-                    cb_price = "£{}".format(cb_price)
-                cb_url = current_best[c_plain]["url"]
-                cb_store = current_best[c_plain]["store"]
-
-                try:
-                    hb_price = historical_best[c_plain]["price"]
-                    hb_date = historical_best[c_plain]["date"]
-                    hb_store = historical_best[c_plain]["store"]
-                    embed.add_field(name="{}".format(title),
-                                    value="**Current Best Price**\n"
-                                          "Price: {}\n"
-                                          "Shop: {}\n"
-                                          "URL: {}\n"
-                                          "**Historical Best Price**\n"
-                                          "Price: £{}\n"
-                                          "Shop: {}\n"
-                                          "When: {}"
-                                          "".format(cb_price, cb_store, cb_url, hb_price, hb_store, hb_date))
-
-                except KeyError:
-                    embed.add_field(name="{}".format(title),
-                                    value="**Current Best Price**\n"
-                                          "Price: {}\n"
-                                          "Shop: {}\n"
-                                          "URL: {}\n"
-                                          "".format(cb_price, cb_store, cb_url))
-
-            except Exception as e:
-                Logger.write(e)
-
-        await msg.edit(embed=embed)
 
     @commands.command()
     async def ps4(self, ctx, *, search_term: str):

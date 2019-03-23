@@ -90,8 +90,7 @@ class Games:
                 await msg.edit(content="Error occurred whilst fetching data.")
                 return
             elif plains is 0:
-                await msg.edit(content="No results found. If your search term has numbers in it, "
-                                       "try replacing them with roman numerals. (i.e. 'far cry 5' would be 'far cry v'")
+                await msg.edit(content="No results found for '{}' on the {} store".format(search_term, store))
                 return
             else:
                 embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),

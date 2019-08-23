@@ -4,6 +4,7 @@ from datetime import datetime
 from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
 import traceback, re
+# from ctypes.util import find_library
 
 
 def get_prefix(d_bot, message):
@@ -34,7 +35,7 @@ class BlueBot(commands.Bot):
         data['info']['last-login-time'] = str(login_time)
 
         if IO.write_settings(data) is False:
-            print(IO.settings_fail_write)
+            print(IO.settings_fail_write, self.base_directory)
 
         login_msg = "Bot Logged In at {}".format(login_time)
         Logger.log_write("----------------------------------------------------------\n"
@@ -118,7 +119,7 @@ class BlueBot(commands.Bot):
                           "".format(Logger.time_now(), error, cog, cmd, full_cmd, ex_file, ex_line, ex_code)
                 Logger.log_write(err_msg)
 
-            except Exception as e:
+            except Exception:
                 # Test the new error logging before removing this
                 err_msg = "----------------------------------------------------------\n" \
                       "THIS IS THE OLD ERROR MESSAGE, THIS SHOULDN'T OCCUR" \
@@ -211,7 +212,6 @@ class BlueBot(commands.Bot):
             if not os.path.exists(configs_f):
                 os.mkdir(configs_f)
             first_time = True
-
         else:
             s_data = IO.read_settings_as_json()
             if s_data is None:

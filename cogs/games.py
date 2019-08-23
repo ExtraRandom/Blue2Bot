@@ -4,7 +4,7 @@ from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
-from cogs.utils import IO, fortnite_api as fn_api
+from cogs.utils import IO, fortnite_api as fn_api, pogo_api as pg  # pogo_api_testing as pg  # pogo_api as pg  #
 from cogs.utils.logger import Logger
 from PIL import Image
 import requests
@@ -13,12 +13,68 @@ import os
 from mcstatus import MinecraftServer
 from re import sub
 import traceback
+import bs4
 
 
 class Games:
     def __init__(self, bot):
         self.bot = bot
         self.fetching = "Retrieving data... please wait!"
+
+    @commands.group(aliases=["pogo", "pkmn", "poke", "pokemon", "pkmngo"])
+    async def pokemongo(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await self.bot.show_cmd_help(ctx)
+
+    @pokemongo.command(name="raidonly", aliases=['raids', 'raid', 'raidsonly'])
+    async def raid_only(self, ctx):
+        """List Pokemon only found in raids"""
+        endpoint = "raid_exclusive_pokemon.json"
+        data = pg.get_data(endpoint)
+
+        raid_msg = ""
+        for poke_id in data:
+            raid_msg += "{}\n".format(data[poke_id]['name'])
+
+        embed = discord.Embed(title="Raid Exclusive Pokemon",
+                              colour=discord.Colour.red())
+        embed.add_field(name="Pokemon",
+                        value="{}".format(raid_msg))
+
+        await ctx.send(embed=embed)
+
+    @pokemongo.command()
+    async def ditto(self, ctx):
+        """List Pokemon that may be a ditto"""
+        endpoint = "possible_ditto_pokemon.json"
+        data = pg.get_data(endpoint)
+
+        ditto_msg = ""
+        for poke_id in data:
+            ditto_msg += "{}\n".format(data[poke_id]['name'])
+
+        embed = discord.Embed(title="Possible Ditto Pokemon",
+                              colour=discord.Colour.red())
+        embed.add_field(name="Pokemon",
+                        value="{}".format(ditto_msg))
+
+        await ctx.send(embed=embed)
+
+    @pokemongo.command(name="type", aliases=["types"])
+    async def type_effectiveness(self, ctx, *, base_type):
+        """List the type multipliers for a given type"""
+        endpoint = "type_effectiveness.json"
+        data = pg.get_data(endpoint)
+        base_type = str(base_type).capitalize()
+
+        if base_type in data:
+            embed = discord.Embed(title="{} Type Effectiveness".format(base_type),
+                                  colour=discord.Colour.red())
+            for k, v in dict(data[base_type]).items():
+                embed.add_field(name="{}".format(k),
+                                value="x{}".format(v))
+
+            await ctx.send(embed=embed)
 
     @commands.command(name="steam")
     async def steam_search(self, ctx, *, search_term: str):
@@ -115,10 +171,8 @@ class Games:
     async def ps4(self, ctx, *, search_term: str):
         """Search for PS4 games on the UK Playstation Store"""
         msg = await ctx.send(self.fetching)
-
         try:
             await msg.edit(embed=playstation_search("PS4", search_term))
-
         except Exception as e:
             Logger.write(e)
             await msg.edit("PS4 Game Search Failed")
@@ -127,10 +181,8 @@ class Games:
     async def ps3(self, ctx, *, search_term: str):
         """Search for PS3 games on the UK Playstation Store"""
         msg = await ctx.send(self.fetching)
-
         try:
             await msg.edit(embed=playstation_search("PS3", search_term))
-
         except Exception as e:
             Logger.write(e)
             await msg.edit("PS3 Game Search Failed")
@@ -180,9 +232,10 @@ class Games:
 
     @commands.group(aliases=["fn"])
     async def fortnite(self, ctx):
-        """Use '?help fortnite' to see subcommands"""
+        # """Use '?help fortnite' to see subcommands"""
         if ctx.invoked_subcommand is None:
-            await ctx.send("Use '?help fortnite' to see subcommands")
+            await self.bot.show_cmd_help(ctx)
+            # await ctx.send("Use '?help fortnite' to see subcommands")
 
     @fortnite.command(aliases=["c", "challenge", "chal"])
     async def challenges(self, ctx):

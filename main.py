@@ -284,7 +284,7 @@ class BlueBot(commands.Bot):
                 await ctx.send("Successfully loaded cog '{}'.".format(cog))
             except Exception as e:
                 Logger.write(e)
-                await ctx.send("Failed to load cog '{}'. Reason: {}".format(cog, type(e).__name__))
+                await ctx.send("Failed to load cog '{}'. Reason: {}. \n {}".format(cog, type(e).__name__, e.args))
                 return
         else:
             await ctx.send("No cog called '{}'.".format(cog))

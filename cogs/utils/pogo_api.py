@@ -1,9 +1,7 @@
 import requests
 import json
 import os
-from cogs.utils import IO
 from cogs.utils.logger import Logger
-import time
 import hashlib
 
 url_base = "https://pogoapi.net/api/v1/"

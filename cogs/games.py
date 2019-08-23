@@ -4,7 +4,7 @@ from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
-from cogs.utils import IO, fortnite_api as fn_api, pogo_api as pg  # pogo_api_testing as pg  # pogo_api as pg  #
+from cogs.utils import IO, fortnite_api as fn_api, pogo_api as pg
 from cogs.utils.logger import Logger
 from PIL import Image
 import requests
@@ -75,6 +75,55 @@ class Games:
                                 value="x{}".format(v))
 
             await ctx.send(embed=embed)
+            return
+        else:
+            await ctx.send("Type '{}' could not be found. Checking spelling.".format(base_type))
+            return
+
+    @pokemongo.command(hidden=True)
+    async def shiny(self, ctx):
+        """List Pokemon that can be Shiny"""
+        endpoint = "shiny_pokemon.json"
+        data = pg.get_data(endpoint)
+
+    @commands.command(hidden=True)
+    async def raids(self, ctx):
+        data = requests.get("https://thesilphroad.com/raid-bosses")
+        # print(data.text)
+        d = bs4.BeautifulSoup(data.text, 'html.parser')
+
+        # tiers = d.select('div[class="raid-boss-tier-wrap"]')
+        # tiers = d.find_all('div[class="raid-boss-tier-wrap"]')
+        tiers = d.find_all("div", class_="raid-boss-tier")
+
+        # attrs={"class": "raids-boss-tier"})
+        # 'div[class="raid-boss-tier"]')
+
+        # print(tiers)
+
+        # p = d.select('div[class="raid-boss-tier"]')
+
+        for tier in tiers:
+            print(tier)
+            return
+            # tier_name = tier.select('h4')[0].text
+
+        # p = tiers[0].nextSibling.nextSibling
+        # print(p)
+
+        # print(p.select('div[class="boss-name"]')[0].text)
+
+        # t
+        # print(p.select('div[class="boss-name"]'))
+
+        await ctx.send("ye")
+
+    @commands.command(name="cex", hidden=True)
+    async def cex_search(self, ctx, *, search_term: str):
+        msg = await ctx.send(self.fetching)
+
+        # https://github.com/teamplz/CEX-API/blob/master/cex/client.py
+
 
     @commands.command(name="steam")
     async def steam_search(self, ctx, *, search_term: str):

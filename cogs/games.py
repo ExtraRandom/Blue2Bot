@@ -83,47 +83,72 @@ class Games:
     @pokemongo.command(hidden=True)
     async def shiny(self, ctx):
         """List Pokemon that can be Shiny"""
+
+        # TODO turn this into a search function instead
+
         endpoint = "shiny_pokemon.json"
         data = pg.get_data(endpoint)
+        e_count = 0
+        embed = discord.Embed(title="Shiny Pokemon",
+                              colour=discord.Colour.red())
+
+        for poke in data:
+            e_fields = len(embed.fields)
+            found_egg = data[poke]['found_egg']
+            found_evolution = data[poke]['found_evolution']
+            found_raid = data[poke]['found_raid']
+            found_wild = data[poke]['found_wild']
+            found_msg = ""
+
+            if found_egg is True:
+                found_msg += "Can be hatch from an egg\n"
+            if found_evolution is True:
+                found_msg += "Can be obtained via evolution\n"
+            if found_raid is True:
+                found_msg += "Can be found in raids"
+            if found_wild is True:
+                found_msg += "Can be found in the wild"
+            if found_wild is False and found_evolution is False and found_raid is False and found_raid is False:
+                found_msg += "idk"
+
+            embed.add_field(name="{} #{}".format(data[poke]['name'], poke),
+                            value="{}".format(found_msg),
+                            inline=True)
+
+            if e_fields >= 16:
+                await ctx.send(embed=embed)
+                e_count += 1
+                embed = discord.Embed(title="Shiny Pokemon {}".format(e_count),
+                                      colour=discord.Colour.red())
+
+        await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
     async def raids(self, ctx):
         data = requests.get("https://thesilphroad.com/raid-bosses")
         # print(data.text)
         d = bs4.BeautifulSoup(data.text, 'html.parser')
-
         # tiers = d.select('div[class="raid-boss-tier-wrap"]')
         # tiers = d.find_all('div[class="raid-boss-tier-wrap"]')
         tiers = d.find_all("div", class_="raid-boss-tier")
-
         # attrs={"class": "raids-boss-tier"})
         # 'div[class="raid-boss-tier"]')
-
         # print(tiers)
-
         # p = d.select('div[class="raid-boss-tier"]')
-
         for tier in tiers:
             print(tier)
             return
             # tier_name = tier.select('h4')[0].text
-
         # p = tiers[0].nextSibling.nextSibling
         # print(p)
-
         # print(p.select('div[class="boss-name"]')[0].text)
-
-        # t
         # print(p.select('div[class="boss-name"]'))
-
         await ctx.send("ye")
 
     @commands.command(name="cex", hidden=True)
     async def cex_search(self, ctx, *, search_term: str):
         msg = await ctx.send(self.fetching)
-
         # https://github.com/teamplz/CEX-API/blob/master/cex/client.py
-
 
     @commands.command(name="steam")
     async def steam_search(self, ctx, *, search_term: str):
@@ -173,7 +198,7 @@ class Games:
     async def itad(self, ctx, store: str, *, search_term: str):
         """Search ITAD.com for games via store
 
-        Valid Stores: Steam, BattleNet, GOG, Origin and Uplay
+        Valid Stores: Steam, BattleNet, GOG, Origin, Epic and Uplay
         """
         msg = await ctx.send(self.fetching)
 

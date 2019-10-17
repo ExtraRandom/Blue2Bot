@@ -97,18 +97,19 @@ class Games:
                                       colour=discord.Colour.red())
                 results = Itad.get_multiple_current_best_price(api_key, plains)
                 count = 0
-                for result in results:
+                for name, info in sorted(results.items()):  # results:
                     count += 1
                     if count == 5:
                         break
-                    price_raw = results[result]['price']
+
+                    price_raw = info['price']
                     price_formatted = round(price_raw, 2)
-                    embed.add_field(name=result,
+
+                    embed.add_field(name=name,
                                     value="Price: £{}\n"
                                           "Store: {}\n"
                                           "  URL: {}"
-                                          "".format(price_formatted, results[result]['store'],
-                                                    results[result]['url']))
+                                          "".format(price_formatted, info['store'], info['url']))
 
                 await msg.edit(embed=embed)
                 return

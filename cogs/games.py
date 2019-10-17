@@ -4,7 +4,7 @@ from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
-from cogs.utils import IO, fortnite_api as fn_api, pogo_api as pg
+from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
 import requests
@@ -13,142 +13,12 @@ import os
 from mcstatus import MinecraftServer
 from re import sub
 import traceback
-import bs4
 
 
 class Games:
     def __init__(self, bot):
         self.bot = bot
         self.fetching = "Retrieving data... please wait!"
-
-    @commands.group(aliases=["pogo", "pkmn", "poke", "pokemon", "pkmngo"])
-    async def pokemongo(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await self.bot.show_cmd_help(ctx)
-
-    @pokemongo.command(name="raidonly", aliases=['raids', 'raid', 'raidsonly'])
-    async def raid_only(self, ctx):
-        """List Pokemon only found in raids"""
-        endpoint = "raid_exclusive_pokemon.json"
-        data = pg.get_data(endpoint)
-
-        raid_msg = ""
-        for poke_id in data:
-            raid_msg += "{}\n".format(data[poke_id]['name'])
-
-        embed = discord.Embed(title="Raid Exclusive Pokemon",
-                              colour=discord.Colour.red())
-        embed.add_field(name="Pokemon",
-                        value="{}".format(raid_msg))
-
-        await ctx.send(embed=embed)
-
-    @pokemongo.command()
-    async def ditto(self, ctx):
-        """List Pokemon that may be a ditto"""
-        endpoint = "possible_ditto_pokemon.json"
-        data = pg.get_data(endpoint)
-
-        ditto_msg = ""
-        for poke_id in data:
-            ditto_msg += "{}\n".format(data[poke_id]['name'])
-
-        embed = discord.Embed(title="Possible Ditto Pokemon",
-                              colour=discord.Colour.red())
-        embed.add_field(name="Pokemon",
-                        value="{}".format(ditto_msg))
-
-        await ctx.send(embed=embed)
-
-    @pokemongo.command(name="type", aliases=["types"])
-    async def type_effectiveness(self, ctx, *, base_type):
-        """List the type multipliers for a given type"""
-        endpoint = "type_effectiveness.json"
-        data = pg.get_data(endpoint)
-        base_type = str(base_type).capitalize()
-
-        if base_type in data:
-            embed = discord.Embed(title="{} Type Effectiveness".format(base_type),
-                                  colour=discord.Colour.red())
-            for k, v in dict(data[base_type]).items():
-                embed.add_field(name="{}".format(k),
-                                value="x{}".format(v))
-
-            await ctx.send(embed=embed)
-            return
-        else:
-            await ctx.send("Type '{}' could not be found. Checking spelling.".format(base_type))
-            return
-
-    @pokemongo.command(hidden=True)
-    async def shiny(self, ctx):
-        """List Pokemon that can be Shiny"""
-
-        # TODO turn this into a search function instead
-
-        endpoint = "shiny_pokemon.json"
-        data = pg.get_data(endpoint)
-        e_count = 0
-        embed = discord.Embed(title="Shiny Pokemon",
-                              colour=discord.Colour.red())
-
-        for poke in data:
-            e_fields = len(embed.fields)
-            found_egg = data[poke]['found_egg']
-            found_evolution = data[poke]['found_evolution']
-            found_raid = data[poke]['found_raid']
-            found_wild = data[poke]['found_wild']
-            found_msg = ""
-
-            if found_egg is True:
-                found_msg += "Can be hatch from an egg\n"
-            if found_evolution is True:
-                found_msg += "Can be obtained via evolution\n"
-            if found_raid is True:
-                found_msg += "Can be found in raids"
-            if found_wild is True:
-                found_msg += "Can be found in the wild"
-            if found_wild is False and found_evolution is False and found_raid is False and found_raid is False:
-                found_msg += "idk"
-
-            embed.add_field(name="{} #{}".format(data[poke]['name'], poke),
-                            value="{}".format(found_msg),
-                            inline=True)
-
-            if e_fields >= 16:
-                await ctx.send(embed=embed)
-                e_count += 1
-                embed = discord.Embed(title="Shiny Pokemon {}".format(e_count),
-                                      colour=discord.Colour.red())
-
-        await ctx.send(embed=embed)
-
-    @commands.command(hidden=True)
-    async def raids(self, ctx):
-        data = requests.get("https://thesilphroad.com/raid-bosses")
-        # print(data.text)
-        d = bs4.BeautifulSoup(data.text, 'html.parser')
-        # tiers = d.select('div[class="raid-boss-tier-wrap"]')
-        # tiers = d.find_all('div[class="raid-boss-tier-wrap"]')
-        tiers = d.find_all("div", class_="raid-boss-tier")
-        # attrs={"class": "raids-boss-tier"})
-        # 'div[class="raid-boss-tier"]')
-        # print(tiers)
-        # p = d.select('div[class="raid-boss-tier"]')
-        for tier in tiers:
-            print(tier)
-            return
-            # tier_name = tier.select('h4')[0].text
-        # p = tiers[0].nextSibling.nextSibling
-        # print(p)
-        # print(p.select('div[class="boss-name"]')[0].text)
-        # print(p.select('div[class="boss-name"]'))
-        await ctx.send("ye")
-
-    @commands.command(name="cex", hidden=True)
-    async def cex_search(self, ctx, *, search_term: str):
-        msg = await ctx.send(self.fetching)
-        # https://github.com/teamplz/CEX-API/blob/master/cex/client.py
 
     @commands.command(name="steam")
     async def steam_search(self, ctx, *, search_term: str):
@@ -231,11 +101,13 @@ class Games:
                     count += 1
                     if count == 5:
                         break
+                    price_raw = results[result]['price']
+                    price_formatted = round(price_raw, 2)
                     embed.add_field(name=result,
                                     value="Price: £{}\n"
                                           "Store: {}\n"
                                           "  URL: {}"
-                                          "".format(results[result]['price'], results[result]['store'],
+                                          "".format(price_formatted, results[result]['store'],
                                                     results[result]['url']))
 
                 await msg.edit(embed=embed)
@@ -304,12 +176,10 @@ class Games:
 
         await msg.edit(embed=embed)
 
-    @commands.group(aliases=["fn"])
+    @commands.group(aliases=["fn"], hidden=True)
     async def fortnite(self, ctx):
-        # """Use '?help fortnite' to see subcommands"""
         if ctx.invoked_subcommand is None:
             await self.bot.show_cmd_help(ctx)
-            # await ctx.send("Use '?help fortnite' to see subcommands")
 
     @fortnite.command(aliases=["c", "challenge", "chal"])
     async def challenges(self, ctx):

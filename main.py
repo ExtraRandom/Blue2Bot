@@ -4,7 +4,6 @@ from datetime import datetime
 from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
 import traceback, re
-# from ctypes.util import find_library
 
 
 def get_prefix(d_bot, message):
@@ -241,7 +240,7 @@ class BlueBot(commands.Bot):
                         Logger.write(exc)
                         s_data['cogs'][folder_cog] = False
 
-        """Read in token"""
+        """Read in discord token"""
         if first_time is True:
             if IO.write_settings(s_data) is False:
                 raise Exception(IO.settings_fail_write)

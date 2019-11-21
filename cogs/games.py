@@ -72,6 +72,11 @@ class Games:
         """
         msg = await ctx.send(self.fetching)
 
+        # Format search term
+        term = search_term.lower()
+        term = sub(r'[^\w]', ' ', term)
+        term = term.strip().replace("   ", " ").replace("  ", " ")
+
         s_data = IO.read_settings_as_json()
         if s_data['keys']['itad-api-key'] is None:
             await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
@@ -85,7 +90,7 @@ class Games:
             await self.bot.show_cmd_help(ctx)
             return
         else:
-            plains = Itad.search_plain_cache(api_key, store, search_term)
+            plains = Itad.search_plain_cache(api_key, store, term)
             if plains is None:
                 await msg.edit(content="Error occurred whilst fetching data.")
                 return

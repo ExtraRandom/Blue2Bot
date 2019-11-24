@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from GameStoresAPI.steam import Steam
-from GameStoresAPI.itad import Itad
+from GameStoresAPI.itad_rw import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
 from cogs.utils import IO, fortnite_api as fn_api
@@ -65,7 +65,50 @@ class Games:
         await msg.edit(embed=embed)
 
     @commands.command()
-    async def itad(self, ctx, store: str, *, search_term: str):
+    async def itad(self, ctx, *, search_term: str):
+        msg = await ctx.send(self.fetching)
+
+        term = search_term.lower()
+        term = sub(r'[^\w]', ' ', term)
+        term = term.strip().replace("   ", " ").replace("  ", " ")
+
+        s_data = IO.read_settings_as_json()
+        if s_data['keys']['itad-api-key'] is None:
+            await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
+            return
+        else:
+            api_key = s_data['keys']['itad-api-key']
+
+        data = Itad.find_games(api_key, term)  # print(data)
+
+        embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(term),
+                              colour=discord.Colour.red())
+        embed.set_footer(text="Make sure to check the website for where the key will redeem.")
+        count = 0
+        for game in data:  # results:  #             print(game)
+            count += 1
+            if count == 6:
+                break
+
+            price_raw = data[game]['price']
+            if price_raw == 0:
+                price_formatted = "Free"
+            else:
+                price_formatted = "£{}".format(round(price_raw, 2))  # print(price_formatted)
+
+                if "." in price_formatted:
+                    if len(price_formatted.split(".")[1]) == 1:
+                        price_formatted = "{}0".format(price_formatted)
+
+            embed.add_field(name=game,
+                            value="Price: {}\n"
+                                  "Store: {}\n"
+                                  "  URL: {}"
+                                  "".format(price_formatted, data[game]['store'], data[game]['url']))
+        await msg.edit(embed=embed)
+
+    @commands.command(hidden=True)
+    async def itad_old(self, ctx, store: str, *, search_term: str):
         """Search ITAD.com for games via store
 
         Valid Stores: Steam, BattleNet, GOG, Origin, Epic and Uplay
@@ -84,13 +127,13 @@ class Games:
         else:
             api_key = s_data['keys']['itad-api-key']
 
-        store = Itad.check_store_valid(store)
+        store = Itad.verify_store(store)  # store = Itad.check_store_valid(store)
         if store == "INVALID":
             await msg.edit(content="Invalid Store Specified")
             await self.bot.show_cmd_help(ctx)
             return
         else:
-            plains = Itad.search_plain_cache(api_key, store, term)
+            plains = Itad.search_plain_cache(api_key, store, term)  # print(plains)
             if plains is None:
                 await msg.edit(content="Error occurred whilst fetching data.")
                 return
@@ -98,13 +141,13 @@ class Games:
                 await msg.edit(content="No results found for '{}' on the {} store".format(search_term, store))
                 return
             else:
-                embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(search_term),
+                embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(term),  # changed to cleaned search term
                                       colour=discord.Colour.red())
-                results = Itad.get_multiple_current_best_price(api_key, plains)
+                results = Itad.get_price_current_best(api_key, plains)  # print(results)
                 count = 0
                 for name, info in sorted(results.items()):  # results:
                     count += 1
-                    if count == 5:
+                    if count == 6:
                         break
 
                     price_raw = info['price']
@@ -115,7 +158,6 @@ class Games:
                                           "Store: {}\n"
                                           "  URL: {}"
                                           "".format(price_formatted, info['store'], info['url']))
-
                 await msg.edit(embed=embed)
                 return
 

@@ -4,4 +4,4 @@ git+git://github.com/ExtraRandom/Game_Stores_API
 requests
 Pillow
 mcstatus
-bs4
+beautifulsoup4

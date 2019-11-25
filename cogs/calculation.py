@@ -4,13 +4,14 @@ import time
 from cogs.utils.logger import Logger
 
 
-class Calculation:
+class Calculation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command(aliases=["temp"])
     async def temperature(self, ctx, degrees: float):
-        """Convert between Celsius and Fahrenheit"""
+        """Convert between Celsius and Fahrenheit
+        Input degrees should be a number."""
         chan = ctx.message.channel
         to_fahrenheit = (degrees * 1.8) + 32
         to_celsius = (degrees - 32) / 1.8
@@ -22,7 +23,7 @@ class Calculation:
     @commands.command()
     async def dltime(self, ctx, size_in_gigabytes: float):
         """Calculate time to download given file size (in GB's)
-
+        Input size_in_gigabytes should be a number.
         500 MegaBytes (MB) = 0.5 GigaBytes (GB)
         """
 

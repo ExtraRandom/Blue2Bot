@@ -15,7 +15,7 @@ from re import sub
 import traceback
 
 
-class Games:
+class Games(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.fetching = "Retrieving data... please wait!"
@@ -66,11 +66,16 @@ class Games:
 
     @commands.command()
     async def itad(self, ctx, *, search_term: str):
+        """Search ITAD.com for games"""
         msg = await ctx.send(self.fetching)
 
         term = search_term.lower()
         term = sub(r'[^\w]', ' ', term)
         term = term.strip().replace("   ", " ").replace("  ", " ")
+
+        if len(term) == 0:
+            await msg.edit(content="{} cannot be used as a search term.".format(search_term))
+            return
 
         s_data = IO.read_settings_as_json()
         if s_data['keys']['itad-api-key'] is None:

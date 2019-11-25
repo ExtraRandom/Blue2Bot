@@ -51,16 +51,9 @@ class BlueBot(commands.Bot):
 
     async def on_command_error(self, ctx, error):
         channel = ctx.message.channel
+        cmd = ctx.command
 
-        # TODO remember why i added this and see if its still needed
-        if error.__cause__ is not None and (str(error.__cause__).startswith("could not convert")
-                                            or str(error).startswith("Converting")):
-            # workaround for commands.ConversionError seemingly not picking up this error
-            # maybe change to be state that issue
-            await self.show_cmd_help(ctx)
-            return
-
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
             await self.show_cmd_help(ctx)
             return
         elif isinstance(error, commands.CommandNotFound):
@@ -73,74 +66,38 @@ class BlueBot(commands.Bot):
                                "".format(str(error).split(". ")[1]))
             return
         else:
-            cmd = str(ctx.command)
-            full_cmd = ctx.message.content
-            try:
-                cog = self.get_command(cmd).cog_name
-            except AttributeError:
-                s_cmd = cmd.split(" ")[0]
-                cog = self.get_command(s_cmd).cog_name
-
-            try:
-                # actually useful error logging, similar to that of the Logger in utils
-                fmt_tb = traceback.format_exception(type(error), error, error.__traceback__)
-
-                ex_code = "N/A"
-                ex_line = "N/A"
-                ex_file = "N/A"
-
-                for line in fmt_tb:
-                    f_line = line.strip()
-                    if self.base_directory in f_line:
-                        # Make this less janky
-                        """
-                            This is quite janky because the exception that caused the error might not be the same 
-                            exception that we want to log. For example the raised exception could be raised by a command
-                            meaning the file, lines and such would be from the discord package rather than the cog
-                            containing the command that actually encountered an error. This janky code finds the 
-                            correct file, line and code that caused an error but is janky.
-                            Preferably fix me if you're bored in the future and read this me
-                        """
-                        ex_line = line.split("\n")[0].strip().split("line ")[1].split(",")[0]
-                        ex_code = line.split("\n")[1].strip()
-                        ex_file = re.findall('"([^"]*)"', line)[0]
-                        break
-
-                err_msg = "----------------------------------------------------------\n" \
-                          "An Error Occurred at {}\n" \
-                          "  Error: {}\n" \
-                          "    Cog: {}\n" \
-                          "Command: {} ({})\n" \
-                          "   File: {}\n" \
-                          "   Line: {}\n" \
-                          "   Code: {}\n" \
-                          "----------------------------------------------------------" \
-                          "".format(Logger.time_now(), error, cog, cmd, full_cmd, ex_file, ex_line, ex_code)
-                Logger.log_write(err_msg)
-
-            except Exception:
-                # Test the new error logging before removing this
-                err_msg = "----------------------------------------------------------\n" \
-                      "THIS IS THE OLD ERROR MESSAGE, THIS SHOULDN'T OCCUR" \
-                      "An Error Occurred at {}\n" \
-                      "Command: {} ({})\n" \
-                      "    Cog: {}\n" \
-                      "  Error: {}\n" \
-                      "   Args: {}\n" \
-                      "----------------------------------------------------------" \
-                      "".format(Logger.time_now(), cmd, full_cmd, cog, error, error.args)
-                Logger.log_write(err_msg)
-
-            await channel.send("**Command Errored:**\n "
-                               "{}".format(error))
+            err = traceback.format_exception(type(error), error, error.__traceback__)
+            Logger.write(err)
+            await channel.send("**Error in '{}' Command!**\n"
+                               "{}\n"
+                               "See the log for more details".format(cmd.name, error))
             return
 
-    @staticmethod
-    async def show_cmd_help(ctx):
-        formatter = commands.formatter.HelpFormatter()
-        f_help = await formatter.format_help_for(ctx, ctx.command)
-        cmd_info = f_help[0]
-        await ctx.send(cmd_info)
+    async def show_cmd_help(self, ctx):
+        cmd = ctx.command
+        cmd_name = cmd.name
+        cmd_help = cmd.help
+        cmd_sig = cmd.signature
+        cmd_dir = dir(ctx.command)
+        cmd_aliases = cmd.aliases  # list  # TODO list aliases in help message
+
+        msg = "```?{} {}\n\n".format(cmd_name, cmd_sig)
+
+        if "commands" in cmd_dir and cmd_help is None:
+            cmd_help = "Use with one of the sub commands listed below"
+        elif cmd_help is None:
+            cmd_help = "No Description Provided"
+
+        msg += "{}\n\n".format(cmd_help)
+
+        if "commands" in cmd_dir:
+            msg += "Subcommands:\n"
+            for sub_cmd in cmd.commands:
+                msg += " {:<12} {:<55}\n".format(sub_cmd.name[:12], sub_cmd.short_doc[:55])
+
+        msg += "```"
+
+        await ctx.send(msg)
 
     @staticmethod
     def get_cogs_in_folder():

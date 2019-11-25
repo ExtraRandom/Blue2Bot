@@ -4,7 +4,7 @@ from cogs.utils import perms, IO
 from datetime import datetime, timedelta
 
 
-class Owner:
+class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -19,7 +19,7 @@ class Owner:
     @commands.command(hidden=True)
     @perms.is_dev()
     async def avatar(self, ctx, image: str):
-        """"Change the bot's avatar"""
+        """Change the bot's avatar"""
         try:
             with open(os.path.join(self.bot.base_directory, image), "rb") as avatar:
                 f = avatar.read()

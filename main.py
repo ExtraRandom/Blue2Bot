@@ -1,9 +1,12 @@
-import discord, os
-from discord.ext import commands  # from discord.utils import get
+from discord.ext import commands
 from datetime import datetime
 from cogs.utils import IO, perms
 from cogs.utils.logger import Logger
-import traceback, re
+import discord
+import traceback
+import os
+# import logging
+# from logging.handlers import TimedRotatingFileHandler
 
 
 def get_prefix(d_bot, message):
@@ -14,6 +17,8 @@ def get_prefix(d_bot, message):
 class BlueBot(commands.Bot):
     def __init__(self):
         self.base_directory = os.path.dirname(os.path.realpath(__file__))
+        # TODO logging module based logging
+        # log_dir = os.path.join(self.base_directory, 'logs')
 
         super().__init__(command_prefix=get_prefix,
                          description="Bot Developed by @Extra_Random#2564\n"
@@ -23,6 +28,15 @@ class BlueBot(commands.Bot):
         self.add_command(self.unload)
         self.add_command(self.reload)
         self.add_command(self.cog_list)
+
+        # self.logger = logging.getLogger('discord')
+        # self.logger.setLevel(logging.DEBUG)  # self.logger.setLevel(logging.INFO)
+        # handler = TimedRotatingFileHandler(filename=os.path.join
+        # (log_dir, str(datetime.now().strftime('%Y_%m_%d.log'))),
+        #                                   encoding='utf-8',
+        #                                   when='midnight')
+        # handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+        # self.logger.addHandler(handler)
 
     async def on_ready(self):
         login_time = datetime.now()
@@ -73,13 +87,14 @@ class BlueBot(commands.Bot):
                                "See the log for more details".format(cmd.name, error))
             return
 
-    async def show_cmd_help(self, ctx):
+    @staticmethod
+    async def show_cmd_help(ctx):
         cmd = ctx.command
         cmd_name = cmd.name
         cmd_help = cmd.help
         cmd_sig = cmd.signature
         cmd_dir = dir(ctx.command)
-        cmd_aliases = cmd.aliases  # list  # TODO list aliases in help message
+        cmd_aliases = cmd.aliases
 
         msg = "```?{} {}\n\n".format(cmd_name, cmd_sig)
 
@@ -94,6 +109,10 @@ class BlueBot(commands.Bot):
             msg += "Subcommands:\n"
             for sub_cmd in cmd.commands:
                 msg += " {:<12} {:<55}\n".format(sub_cmd.name[:12], sub_cmd.short_doc[:55])
+
+        if len(cmd_aliases) > 0:
+            msg += "\n\n" \
+                   "Aliases: {}".format(",".join(cmd_aliases))
 
         msg += "```"
 
@@ -124,8 +143,7 @@ class BlueBot(commands.Bot):
             {
                 "keys": {
                     "token": None,
-                    "itad-api-key": None,
-                    "apex-api-key": None
+                    "itad-api-key": None
                 },
                 "cogs": {},
                 "info": {

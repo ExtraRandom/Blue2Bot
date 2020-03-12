@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad_rw import Itad
@@ -7,11 +6,12 @@ from GameStoresAPI.origin import Origin
 from cogs.utils import IO, fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
-import requests
-from io import BytesIO
-import os
 from mcstatus import MinecraftServer
 from re import sub
+from io import BytesIO
+import discord
+import requests
+import os
 import traceback
 
 
@@ -90,7 +90,7 @@ class Games(commands.Cog):
                               colour=discord.Colour.red())
         embed.set_footer(text="Make sure to check the website for where the key will redeem.")
         count = 0
-        for game in data:  # results:  #             print(game)
+        for game in data:
             count += 1
             if count == 6:
                 break

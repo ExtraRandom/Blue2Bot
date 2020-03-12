@@ -22,8 +22,12 @@ class Calculation(commands.Cog):
     @commands.command()
     async def dltime(self, ctx, size_in_gigabytes: float, download_speed_megabytes_per_second: float = 0):
         """Calculate time to download given file size (in GB's)
-        Input size_in_gigabytes should be a number.
-        500 MegaBytes (MB) = 0.5 GigaBytes (GB)
+
+        Argument size_in_gigabytes should be the download size in gigabytes.
+        For reference, 500 MegaBytes is 0.5 Gigabytes.
+
+        OPTIONAL Argument download_speed_megabytes_per_second should be the speed in MegaBytes per second.
+        If you only have access to your speed in MegaBits per second, take the speed and divide it by 8 to get MegaBytes per second.
         """
         if size_in_gigabytes >= 1000000:
             await ctx.send("{} GigaBytes?! You'll be dead before that finishes downloading!".format(size_in_gigabytes))

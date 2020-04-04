@@ -5,8 +5,6 @@ from cogs.utils.logger import Logger
 import discord
 import traceback
 import os
-# import logging
-# from logging.handlers import TimedRotatingFileHandler
 
 
 def get_prefix(d_bot, message):
@@ -17,8 +15,6 @@ def get_prefix(d_bot, message):
 class BlueBot(commands.Bot):
     def __init__(self):
         self.base_directory = os.path.dirname(os.path.realpath(__file__))
-        # TODO logging module based logging
-        # log_dir = os.path.join(self.base_directory, 'logs')
 
         super().__init__(command_prefix=get_prefix,
                          description="Bot Developed by @Extra_Random#2564\n"
@@ -29,38 +25,27 @@ class BlueBot(commands.Bot):
         self.add_command(self.reload)
         self.add_command(self.cog_list)
 
-        # self.logger = logging.getLogger('discord')
-        # self.logger.setLevel(logging.DEBUG)  # self.logger.setLevel(logging.INFO)
-        # handler = TimedRotatingFileHandler(filename=os.path.join
-        # (log_dir, str(datetime.now().strftime('%Y_%m_%d.log'))),
-        #                                   encoding='utf-8',
-        #                                   when='midnight')
-        # handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-        # self.logger.addHandler(handler)
-
     async def on_ready(self):
-        login_time = datetime.now()
-        data = IO.read_settings_as_json()
-
-        if data is None:
-            raise Exception(IO.settings_fail_read)
-
-        data['info']['last-login-time'] = str(login_time)
-
-        if IO.write_settings(data) is False:
-            print(IO.settings_fail_write, self.base_directory)
-
-        login_msg = "Bot Logged In at {}".format(login_time)
+        # https://discordpy.readthedocs.io/en/latest/api.html#discord.on_connect
+        self.update_json_time(update_reconnect_time=True)
+        login_msg = "Bot Connected at {}".format(str(datetime.now()))
         Logger.log_write("----------------------------------------------------------\n"
                          "{}\n"
                          "".format(login_msg))
         print(login_msg)
 
+    async def on_disconnect(self):
+        dc_time = datetime.now()
+        dc_msg = "Bot disconnected at {}".format(dc_time)
+        Logger.log_write("----------------------------------------------------------\n"
+                         "{}\n"
+                         "".format(dc_msg))
+        print(dc_msg)
+
     async def on_message(self, message):
         bot_msg = message.author.bot
         if bot_msg is True:
             return
-
         await self.process_commands(message)
 
     async def on_command_error(self, ctx, error):
@@ -119,6 +104,22 @@ class BlueBot(commands.Bot):
         await ctx.send(msg)
 
     @staticmethod
+    def update_json_time(update_start_time=False, update_reconnect_time=False):
+        time = str(datetime.now())
+        data = IO.read_settings_as_json()
+
+        if data is None:
+            raise Exception(IO.settings_fail_read)
+
+        if update_start_time:
+            data['info']['start-time'] = time
+        if update_reconnect_time:
+            data['info']['reconnect-time'] = time
+
+        if IO.write_settings(data) is False:
+            print(IO.settings_fail_write)
+
+    @staticmethod
     def get_cogs_in_folder():
         c_dir = os.path.dirname(os.path.realpath(__file__))
         c_list = []
@@ -147,7 +148,8 @@ class BlueBot(commands.Bot):
                 },
                 "cogs": {},
                 "info": {
-                    "last-login-time": None
+                    "start-time": None,
+                    "reconnect-time": None
                 }
             }
         sd_len = len(settings_data)
@@ -236,6 +238,7 @@ class BlueBot(commands.Bot):
             raise Exception(IO.settings_fail_write)
 
         if token:
+            self.update_json_time(update_start_time=True)
             super().run(token)
         else:
             Logger.write_and_print("Token is not set! Go to {} and change the token parameter!"

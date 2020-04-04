@@ -3,7 +3,8 @@ from GameStoresAPI.steam import Steam
 from GameStoresAPI.itad_rw import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
-from cogs.utils import IO, fortnite_api as fn_api
+from cogs.utils import IO
+from cogs.utils import fortnite_api as fn_api
 from cogs.utils.logger import Logger
 from PIL import Image
 from mcstatus import MinecraftServer
@@ -234,7 +235,7 @@ class Games(commands.Cog):
         if ctx.invoked_subcommand is None:
             await self.bot.show_cmd_help(ctx)
 
-    @fortnite.command(aliases=["c", "challenge", "chal"])
+    @fortnite.command(aliases=["c", "challenge", "chal"], hidden=True)
     async def challenges(self, ctx):
         """Get this weeks battle pass challenges"""
         data, cached = fn_api.get_challenges()
@@ -274,7 +275,7 @@ class Games(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @fortnite.command(aliases=["s", "shop", "i", "items", "item"])
+    @fortnite.command(aliases=["s", "shop", "i", "items", "item"], hidden=True)
     async def store(self, ctx):
         """Get the current item shop"""
 
@@ -335,7 +336,7 @@ class Games(commands.Cog):
         await ctx.send(file=img_file)
         await fetch_msg.delete()
 
-    @fortnite.command(aliases=["u", "upc", "leaked", "l"])
+    @fortnite.command(aliases=["u", "upc", "leaked", "l"], hidden=True)
     async def upcoming(self, ctx):
         """Get known upcoming items"""
         data = fn_api.get_upcoming()

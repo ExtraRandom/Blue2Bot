@@ -55,17 +55,22 @@ class Owner(commands.Cog):
                 await ctx.send(IO.settings_fail_read)
                 return
 
-            login_time = datetime.strptime(data['info']['last-login-time'], "%Y-%m-%d %H:%M:%S.%f")
-            now = datetime.now()
+            def time_passed(dt):
+                time = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f")
+                now = datetime.now()
 
-            td = timedelta.total_seconds(now - login_time)
-            td = int(td)
+                td = timedelta.total_seconds(now - time)
+                td = int(td)
 
-            m, s = divmod(td, 60)
-            h, m = divmod(m, 60)
-            uptime = "%d:%02d:%02d" % (h, m, s)
+                m, s = divmod(td, 60)
+                h, m = divmod(m, 60)
+                uptime = "%d:%02d:%02d" % (h, m, s)
+                return uptime
 
-            await ctx.send("Bot Uptime: {}".format(uptime))
+            await ctx.send("Bot Uptime: {}\n"
+                           "Last Reconnect Time: {}"
+                           "".format(time_passed(data['info']['start-time']),
+                                     time_passed(data['info']['reconnect-time'])))
 
         except Exception as e:
             await ctx.send("Error getting bot uptime. Reason: {}".format(type(e).__name__))

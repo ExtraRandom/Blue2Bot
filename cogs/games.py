@@ -4,15 +4,10 @@ from GameStoresAPI.itad_rw import Itad
 from GameStoresAPI.playstation import Playstation
 from GameStoresAPI.origin import Origin
 from cogs.utils import IO
-from cogs.utils import fortnite_api as fn_api
 from cogs.utils.logger import Logger
-from PIL import Image
 from mcstatus import MinecraftServer
 from re import sub
-from io import BytesIO
 import discord
-import requests
-import os
 import traceback
 
 
@@ -113,60 +108,6 @@ class Games(commands.Cog):
                                   "".format(price_formatted, data[game]['store'], data[game]['url']))
         await msg.edit(embed=embed)
 
-    @commands.command(hidden=True)
-    async def itad_old(self, ctx, store: str, *, search_term: str):
-        """Search ITAD.com for games via store
-
-        Valid Stores: Steam, BattleNet, GOG, Origin, Epic and Uplay
-        """
-        msg = await ctx.send(self.fetching)
-
-        # Format search term
-        term = search_term.lower()
-        term = sub(r'[^\w]', ' ', term)
-        term = term.strip().replace("   ", " ").replace("  ", " ")
-
-        s_data = IO.read_settings_as_json()
-        if s_data['keys']['itad-api-key'] is None:
-            await msg.edit("ITAD API Key hasn't been set. Go to the settings file to set it now!")
-            return
-        else:
-            api_key = s_data['keys']['itad-api-key']
-
-        store = Itad.verify_store(store)  # store = Itad.check_store_valid(store)
-        if store == "INVALID":
-            await msg.edit(content="Invalid Store Specified")
-            await self.bot.show_cmd_help(ctx)
-            return
-        else:
-            plains = Itad.search_plain_cache(api_key, store, term)  # print(plains)
-            if plains is None:
-                await msg.edit(content="Error occurred whilst fetching data.")
-                return
-            elif plains is 0:
-                await msg.edit(content="No results found for '{}' on the {} store".format(search_term, store))
-                return
-            else:
-                embed = discord.Embed(title="'{}' on IsThereAnyDeal.com".format(term),  # changed to cleaned search term
-                                      colour=discord.Colour.red())
-                results = Itad.get_price_current_best(api_key, plains)  # print(results)
-                count = 0
-                for name, info in sorted(results.items()):  # results:
-                    count += 1
-                    if count == 6:
-                        break
-
-                    price_raw = info['price']
-                    price_formatted = round(price_raw, 2)
-
-                    embed.add_field(name=name,
-                                    value="Price: £{}\n"
-                                          "Store: {}\n"
-                                          "  URL: {}"
-                                          "".format(price_formatted, info['store'], info['url']))
-                await msg.edit(embed=embed)
-                return
-
     @commands.command()
     async def ps4(self, ctx, *, search_term: str):
         """Search for PS4 games on the UK Playstation Store"""
@@ -200,7 +141,7 @@ class Games(commands.Cog):
 
         url_base = "https://www.origin.com/gbr/en-us/store"
 
-        if data['success'] == False:
+        if data['success'] is False:
             await msg.edit(content="Failed to fetch data from Origin\n"
                                    "Reason: {}".format(data['reason']))
             return
@@ -229,162 +170,6 @@ class Games(commands.Cog):
             return
 
         await msg.edit(embed=embed)
-
-    @commands.group(aliases=["fn"], hidden=True)
-    async def fortnite(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await self.bot.show_cmd_help(ctx)
-
-    @fortnite.command(aliases=["c", "challenge", "chal"], hidden=True)
-    async def challenges(self, ctx):
-        """Get this weeks battle pass challenges"""
-        data, cached = fn_api.get_challenges()
-
-        if data is None:
-            await ctx.send("Couldn't reach Fortnite API")
-            return
-
-        current_week = data["currentweek"]
-        season = data["season"]
-        star_img = data["star"]
-        cw = "week{}".format(current_week)
-        raw_challenges = data["challenges"][cw]
-
-        embed = discord.Embed(title="Fortnite Challenges",
-                              description="Season {}, Week {}".format(season, current_week),
-                              colour=discord.Colour.blue())
-        embed.set_thumbnail(url=star_img)
-        if cached is True:
-            embed.set_footer(text="This is cached data")
-
-        for challenge in raw_challenges:
-            desc = challenge["challenge"]
-            todo = challenge["total"]
-            reward = challenge["stars"]
-            difficulty = challenge["difficulty"]
-
-            if difficulty == "hard":
-                f_desc = "{} (Hard)".format(desc)
-            else:
-                f_desc = desc
-
-            embed.add_field(name="{}".format(f_desc),
-                            value="Required Amount: {}\n"
-                                  "Reward: {} stars"
-                                  "".format(todo, reward))
-
-        await ctx.send(embed=embed)
-
-    @fortnite.command(aliases=["s", "shop", "i", "items", "item"], hidden=True)
-    async def store(self, ctx):
-        """Get the current item shop"""
-
-        data = fn_api.get_store()
-
-        if data is None:
-            await ctx.send("Couldn't reach Fortnite API")
-
-        fetch_msg = await ctx.send("Fetching Fortnite Store Data from API")
-
-        num_of_items = len(data[0]['items'])
-
-        base_w = 512
-        base_h = 512
-
-        current_w = 0
-        current_h = 0
-
-        full_rows, left_over = divmod(num_of_items, 5)
-        if left_over >= 1:
-            rows = full_rows + 1
-        else:
-            rows = full_rows
-
-        calc_h = base_h * rows
-        calc_w = base_w * 5
-
-        STORE_IMAGE = Image.new("RGBA", (calc_w, calc_h), (255, 0, 0, 0))
-
-        vbucks_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images', 'fortnite')
-
-        for item in data[0]['items']:
-            img_url = item['item']['images']['background']
-            cost = item['cost']
-
-            res = requests.get(img_url)
-            ITEM_IMAGE = Image.open(BytesIO(res.content)).convert("RGBA")
-
-            cost_img_loc = os.path.join(vbucks_folder, "{}vbucks.png".format(cost))
-
-            if os.path.exists(cost_img_loc):
-                COST_IMAGE = Image.open(cost_img_loc)
-            else:
-                COST_IMAGE = Image.open(os.path.join(vbucks_folder, "unknownvbucks.png"))
-
-            ITEM_IMAGE.paste(COST_IMAGE, COST_IMAGE)
-            STORE_IMAGE.paste(ITEM_IMAGE, (current_w, current_h), ITEM_IMAGE)
-
-            current_w = current_w + 512
-            if current_w >= calc_w:
-                current_w = 0
-                current_h = current_h + 512
-
-        final_img = os.path.join(vbucks_folder, "STORE.png")
-        STORE_IMAGE.save(final_img)
-        img_file = discord.File(final_img)
-
-        await ctx.send(file=img_file)
-        await fetch_msg.delete()
-
-    @fortnite.command(aliases=["u", "upc", "leaked", "l"], hidden=True)
-    async def upcoming(self, ctx):
-        """Get known upcoming items"""
-        data = fn_api.get_upcoming()
-
-        if data is None:
-            await ctx.send("Couldn't reach Fortnite API")
-
-        fetch_msg = await ctx.send("Fetching Fortnite Upcoming Items Data from API")
-
-        num_of_items = len(data[0]['items'])
-
-        base_w = 512
-        base_h = 512
-
-        current_w = 0
-        current_h = 0
-
-        full_rows, left_over = divmod(num_of_items, 5)
-        if left_over >= 1:
-            rows = full_rows + 1
-        else:
-            rows = full_rows
-
-        calc_h = base_h * rows
-        calc_w = base_w * 5
-
-        UPCOMING_IMAGE = Image.new("RGBA", (calc_w, calc_h), (255, 0, 0, 0))
-        final_img_folder = os.path.join(self.bot.base_directory, 'cogs', 'data', 'images', 'fortnite')
-
-        for item in data[0]['items']:
-            img_url = item['item']['images']['information']
-
-            res = requests.get(img_url)
-            ITEM_IMAGE = Image.open(BytesIO(res.content)).convert("RGBA")
-
-            UPCOMING_IMAGE.paste(ITEM_IMAGE, (current_w, current_h), ITEM_IMAGE)
-
-            current_w = current_w + 512
-            if current_w >= calc_w:
-                current_w = 0
-                current_h = current_h + 512
-
-        final_img = os.path.join(final_img_folder, "UPCOMING.png")
-        UPCOMING_IMAGE.save(final_img)
-        img_file = discord.File(final_img)
-
-        await ctx.send(file=img_file)
-        await fetch_msg.delete()
 
     @commands.command(name="mc")
     async def minecraft_ip(self, ctx, ip: str):

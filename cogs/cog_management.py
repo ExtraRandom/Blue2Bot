@@ -1,6 +1,7 @@
 from discord.ext import commands
 import os
-from cogs.utils import perms, IO, logger
+from cogs.utils import perms, IO
+from cogs.utils.logger import Logger
 
 
 class CogManagement(commands.Cog):
@@ -23,7 +24,7 @@ class CogManagement(commands.Cog):
                 self.bot.load_extension(l_cog_name)
                 await ctx.send("Successfully loaded cog '{}'.".format(cog))
             except Exception as e:
-                logger.write(e)
+                Logger.write(e)
                 await ctx.send("Failed to load cog '{}'. Reason: {}. \n {}".format(cog, type(e).__name__, e.args))
                 return
         else:
@@ -84,7 +85,7 @@ class CogManagement(commands.Cog):
             try:
                 self.bot.unload_extension(cog_n)
             except Exception as e:
-                logger.write(e)
+                Logger.write(e)
                 await ctx.send("Failed to unload cog '{}'".format(cog))
                 return
         else:
@@ -95,7 +96,7 @@ class CogManagement(commands.Cog):
             self.bot.load_extension(cog_n)
             await ctx.send("Successfully reloaded cog '{}'".format(cog))
         except Exception as e:
-            logger.write(e)
+            Logger.write(e)
             await ctx.send("Failed to reload cog '{}'")
             return
 

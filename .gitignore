@@ -112,3 +112,4 @@ GSAPI_Cache/
 cogs/data/fortnite_*.json
 cogs/data/images/fortnite/store.png
 cogs/data/images/fortnite/upcoming.png
+cogs/server*.py

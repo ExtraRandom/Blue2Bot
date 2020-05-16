@@ -138,9 +138,16 @@ class AnimalCrossing(commands.Cog):
 
                 if add is True:
                     field_count += 1  # print(name, "added")
-                    msg.add_field(name="{}".format(name), value="Where: {}\n"
-                                                                "When: {}"
-                                                                "".format(where, when))
+                    if search_type != "fish":
+                        msg.add_field(name="{}".format(name), value="Where: {}\n"
+                                                                    "When: {}"
+                                                                    "".format(where, when))
+                    else:
+                        shadow = item['shadowSize']
+                        msg.add_field(name="{}".format(name), value="Where: {}\n"
+                                                                    "When: {}\n"
+                                                                    "Shadow Size: {}"
+                                                                    "".format(where, when, shadow))
         if len(embed_list) is 0:
             return msg
         else:
@@ -158,8 +165,6 @@ class AnimalCrossing(commands.Cog):
                 hour = int(hour) + 12
             results.append(hour)
         return int(results[0]), int(results[1])
-
-
 
 
 def setup(bot):
